@@ -1,0 +1,101 @@
+name: auto_tanki_app
+description: "Smart Water Tank Controller — IoT SaaS app for dual-tank real-time monitoring, automation, and billing."
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # ─── State Management ───────────────────────────────────────────
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.3.3 # peer of riverpod_generator 2.4.0
+
+  # ─── Navigation ─────────────────────────────────────────────────
+  go_router: ^14.6.2
+
+  # ─── Networking ─────────────────────────────────────────────────
+  dio: ^5.7.0
+  mqtt_client: ^10.2.1
+
+  # ─── Local Storage ──────────────────────────────────────────────
+  isar: ^3.1.0+1
+  isar_flutter_libs: ^3.1.0+1 # Native Isar libs for Android/iOS
+  hive_flutter: ^1.1.0 # Lightweight prefs (non-sensitive only)
+  flutter_secure_storage: ^9.2.2 # JWT storage (Keychain/Keystore)
+
+  # ─── Serialization / Code Generation ────────────────────────────
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+
+  # ─── UI & Animations ────────────────────────────────────────────
+  rive: ^0.13.18 # Water tank + motor animations
+  google_fonts: ^6.2.1 # Space Grotesk
+  cached_network_image: ^3.4.1 # Avatar / device images with shimmer
+  shimmer: ^3.0.0 # Skeleton loading placeholders
+  fl_chart: ^0.69.0 # Insight charts (line, bar)
+
+  # ─── Device Features ────────────────────────────────────────────
+  permission_handler: ^11.3.1 # BLE, camera, location, NEARBY_WIFI
+  mobile_scanner: ^6.0.4 # QR code scanning (claimCode)
+  flutter_blue_plus: ^1.35.3 # BLE provisioning
+  device_info_plus: ^10.1.2 # Android API level check (for NEARBY_WIFI)
+
+  # ─── WebView & Web ──────────────────────────────────────────────
+  webview_flutter: ^4.10.0 # Payment gateway WebView
+
+  # ─── Phone Number ───────────────────────────────────────────────
+  intl_phone_field: ^3.2.0 # Registration phone input with country code
+
+  # ─── Firebase ───────────────────────────────────────────────────
+  firebase_core: ^3.8.1
+  firebase_crashlytics: ^4.1.4 # Non-fatal error reporting + PII-safe
+  firebase_messaging: ^15.1.6 # FCM push notifications → GoRouter
+
+  # ─── Utilities ──────────────────────────────────────────────────
+  uuid: ^4.5.1 # UUID generation
+  intl: ^0.20.1 # Date formatting, localization
+  url_launcher: ^6.3.1 # Open external URLs
+  package_info_plus: ^8.1.2 # App version in settings
+  path_provider: ^2.1.4 # Isar database directory (main.dart)
+  cupertino_icons: ^1.0.8 #
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # ─── Code Generation ────────────────────────────────────────────
+  build_runner: ^2.4.8
+  freezed: ^2.4.4 # <2.5.3 uses source_gen ^1.2.x
+  json_serializable: ^6.7.1
+  riverpod_generator: ^2.4.0 # <2.4.2 uses source_gen ^1.2.x (pub tool confirmed)
+  isar_generator: ^3.1.0+1
+
+  # ─── Testing ────────────────────────────────────────────────────
+  integration_test:
+    sdk: flutter
+  mockito: ^5.4.4
+  build: ^2.4.1 # Required for mockito @GenerateMocks
+  flutter_lints: ^5.0.0
+  change_app_package_name: ^1.5.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/app_icon.png" # নিশ্চিত করুন এই পাথে আপনার ছবিটি আছে
+  adaptive_icon_background: "#FFFFFF" 
+  adaptive_icon_foreground: "assets/images/app_icon.png"
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/rive/
+    - assets/images/
+    - assets/icons/
+    - assets/config/
+
