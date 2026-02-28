@@ -29,10 +29,38 @@ class DashboardRepository {
     );
   }
 
+  // System mode config — PUT /devices/{id}/motors/{motor}/config
+  // motor: 'oht' | 'ugt'  |  mode: 'AUTO' | 'MANUAL'
+  Future<void> setMode({
+    required String deviceId,
+    required String motor,
+    required String mode,
+  }) async {
+    await _dio.put(
+      ApiConstants.motorConfig(deviceId, motor),
+      data: {'mode': mode},
+    );
+  }
+
   // Subscription check — used by intent guard to verify billing freshness
   Future<Map<String, dynamic>> getSubscriptionStatus(String deviceId) async {
-    final response = await _dio.get(ApiConstants.deviceSubscription(deviceId));
-    return response.data as Map<String, dynamic>;
+    try {
+      final resp = await _dio.get(ApiConstants.subscriptions);
+      final rawData = resp.data as Map<String, dynamic>;
+      final data = rawData['data'] as Map<String, dynamic>? ?? rawData;
+      final subscriptions = (data['subscriptions'] as List?) ?? [];
+      
+      for (final s in subscriptions) {
+         final subMap = s as Map<String, dynamic>;
+         if (subMap['deviceId'] == deviceId && subMap['status'] == 'ACTIVE') {
+            return subMap;
+         }
+      }
+      return {};
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return {};
+      rethrow;
+    }
   }
 }
 

@@ -41,8 +41,13 @@ class SettingsRepository {
 
   // ─── Tank Config (includes predefSizeId — API-verified) ───────────────────
   Future<TankConfig> getTankConfig(String deviceId) async {
-    final resp = await _dio.get(ApiConstants.tankConfig(deviceId));
-    return TankConfig.fromJson(resp.data as Map<String, dynamic>);
+    final resp = await _dio.get(ApiConstants.deviceById(deviceId));
+    final rawData = resp.data as Map<String, dynamic>;
+    final data = rawData['data'] as Map<String, dynamic>? ?? rawData;
+    final deviceJson = data.containsKey('device') 
+        ? data['device'] as Map<String, dynamic> 
+        : data;
+    return TankConfig.fromJson(deviceJson);
   }
 
   Future<TankConfig> updateTankConfig(String deviceId, TankConfig config) async {

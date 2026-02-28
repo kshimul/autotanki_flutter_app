@@ -13,18 +13,15 @@ class ScheduleRepository {
   ScheduleRepository(this._dio);
 
   Future<List<Schedule>> getSchedules(String deviceId) async {
-    final resp = await _dio.get(
-      ApiConstants.schedules,
-      queryParameters: {'deviceId': deviceId},
-    );
+    final resp = await _dio.get(ApiConstants.schedules(deviceId));
     return (resp.data as List)
         .map((e) => Schedule.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 
-  Future<Schedule> createSchedule(CreateScheduleRequest req) async {
+  Future<Schedule> createSchedule(String deviceId, CreateScheduleRequest req) async {
     final resp = await _dio.post(
-      ApiConstants.schedules,
+      ApiConstants.schedules(deviceId),
       data: req.toJson(),
     );
     return Schedule.fromJson(resp.data as Map<String, dynamic>);
@@ -32,14 +29,14 @@ class ScheduleRepository {
 
   Future<Schedule> toggleSchedule(String deviceId, String scheduleId, bool isActive) async {
     final resp = await _dio.put(
-      ApiConstants.scheduleById(scheduleId),
+      ApiConstants.scheduleById(deviceId, scheduleId),
       data: {'isActive': isActive},
     );
     return Schedule.fromJson(resp.data as Map<String, dynamic>);
   }
 
   Future<void> deleteSchedule(String deviceId, String scheduleId) async {
-    await _dio.delete(ApiConstants.scheduleById(scheduleId));
+    await _dio.delete(ApiConstants.scheduleById(deviceId, scheduleId));
   }
 }
 

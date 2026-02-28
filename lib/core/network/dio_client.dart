@@ -17,8 +17,8 @@ const _secureStorage = FlutterSecureStorage(
   iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
 );
 
-const _accessTokenKey  = 'access_token';
-const _refreshTokenKey = 'refresh_token';
+const _accessTokenKey  = 'auth_access_token';
+const _refreshTokenKey = 'auth_refresh_token';
 
 Dio createDio() {
   final dio = Dio(
@@ -130,28 +130,6 @@ class _AuthInterceptor extends QueuedInterceptorsWrapper {
     await _secureStorage.delete(key: _accessTokenKey);
     await _secureStorage.delete(key: _refreshTokenKey);
   }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// TOKEN HELPERS — Public methods for auth repository
-// ─────────────────────────────────────────────────────────────────────────────
-
-Future<void> saveTokens({
-  required String accessToken,
-  required String refreshToken,
-}) async {
-  await _secureStorage.write(key: _accessTokenKey, value: accessToken);
-  await _secureStorage.write(key: _refreshTokenKey, value: refreshToken);
-}
-
-Future<void> clearTokens() async {
-  await _secureStorage.delete(key: _accessTokenKey);
-  await _secureStorage.delete(key: _refreshTokenKey);
-}
-
-Future<bool> hasValidTokens() async {
-  final token = await _secureStorage.read(key: _accessTokenKey);
-  return token != null && token.isNotEmpty;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

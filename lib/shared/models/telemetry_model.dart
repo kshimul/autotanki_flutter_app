@@ -18,7 +18,8 @@ class TelemetryData with _$TelemetryData {
     required double powerWatts,      // Current draw W
     required double energyKwh,       // Session energy kWh
     // Firmware reported
-    required String firmwareMode,    // 'AUTO' | 'MANUAL'
+    required String firmwareOhtMode, // 'AUTO' | 'MANUAL'
+    required String firmwareUgtMode, // 'AUTO' | 'MANUAL'
     required bool isSystemSuspended, // SYS_SUSPENDED flag
     required DateTime timestamp,
   }) = _TelemetryData;

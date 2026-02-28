@@ -19,10 +19,37 @@ class DeviceSelectorNotifier extends StateNotifier<Device?> {
 
   DeviceSelectorNotifier(this._deviceRepo, this._mqtt) : super(null);
 
+  // Loads devices and selects the first one if none is selected yet.
+  // Safe to call repeatedly — won't override an existing manual selection.
   Future<void> loadDevices() async {
-    final devices = await _deviceRepo.getMyDevices();
-    if (devices.isNotEmpty && state == null) {
-      await selectDevice(devices.first);
+    try {
+      final devices = await _deviceRepo.getMyDevices();
+      if (devices.isNotEmpty && state == null) {
+        await selectDevice(devices.first);
+      }
+    } catch (e) {
+      // Fail silently — UI reads deviceListProvider for error state
+    }
+  }
+
+  // Forces a full re-fetch and auto-selects the first device.
+  // Call this after pull-to-refresh or after admin assigns a new device.
+  Future<void> refreshDevices() async {
+    try {
+      final devices = await _deviceRepo.getMyDevices();
+      if (devices.isNotEmpty) {
+        // Auto-select first device if nothing is selected, or keep current if still present
+        final currentId = state?.id;
+        final stillExists = devices.any((d) => d.id == currentId);
+        if (!stillExists) {
+          await selectDevice(devices.first);
+        }
+      } else {
+        // No devices — clear selection
+        state = null;
+      }
+    } catch (e) {
+      // Fail silently — UI reads deviceListProvider for error state
     }
   }
 
@@ -46,9 +73,9 @@ final deviceSelectorProvider =
   );
 });
 
-// Convenience: list of all user devices
-final deviceListProvider = FutureProvider<List<Device>>((ref) async {
-  return ref.watch(deviceRepositoryProvider).getMyDevices();
+// Convenience: list of all user devices (auto-dispose so it always re-fetches)
+final deviceListProvider = FutureProvider.autoDispose<List<Device>>((ref) async {
+  return ref.read(deviceRepositoryProvider).getMyDevices();
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -121,7 +121,7 @@ class _ScanQrScreenState extends ConsumerState<ScanQrScreen> {
                           child: MobileScanner(
                             controller: _controller,
                             onDetect: (capture) {
-                              if (_scanned) return;
+                              if (_scanned || capture.barcodes.isEmpty) return;
                               final code = capture.barcodes.first.rawValue;
                               if (code != null) {
                                 _scanned = true;

@@ -68,28 +68,10 @@ class _InteractiveTankState extends State<InteractiveTank> {
         SizedBox(
           width: 130,
           height: 160,
-          child: _riveLoaded || !_riveLoaded
-              ? Stack(
-                  children: [
-                    // Try Rive first
-                    RiveAnimation.asset(
-                      'assets/rive/tank.riv',
-                      stateMachines: const ['TankMachine'],
-                      onInit: _onRiveInit,
-                      // If Rive fails (asset missing), CustomPaint shows instead
-                    ),
-                    // Fallback: always show procedural tank if Rive not loaded
-                    if (!_riveLoaded)
-                      _FallbackTank(
-                        level: widget.level,
-                        isMotorOn: widget.isMotorOn,
-                      ),
-                  ],
-                )
-              : _FallbackTank(
-                  level: widget.level,
-                  isMotorOn: widget.isMotorOn,
-                ),
+          child: _FallbackTank(
+            level: widget.level,
+            isMotorOn: widget.isMotorOn,
+          ),
         ),
 
         const SizedBox(height: Spacing.sm),

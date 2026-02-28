@@ -49,7 +49,7 @@ class SettingsScreen extends ConsumerWidget {
 
                 // ── Device ───────────────────────────────────────────────
                 if (device != null) ...[
-                  _SectionHeader(title: 'Device: ${device.name}'),
+                  _SectionHeader(title: 'Device: ${device.displayName}'),
                   _SettingsTile(
                     icon: Icons.water_drop_outlined,
                     label: 'Tank Configuration',

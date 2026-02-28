@@ -5,22 +5,37 @@ part 'device_model.g.dart';
 
 @freezed
 class Device with _$Device {
+  const Device._();
+
   const factory Device({
     required String id,
-    required String name,
-    required String claimCode,
+    String? nickname,
+    String? claimCode,
     String? macAddress,
-    // API-verified fields from Swagger (were missing in v3.0)
-    String? tankTypeId,          // UUID linking to predefined tank type
+    String? tankTypeId,
     @Default(false) bool isLabelPrinted,
-    required String ownerId,
-    required String status,      // 'ONLINE' | 'OFFLINE' | 'SUSPENDED'
-    DateTime? lastSeenAt,
-    required DateTime createdAt,
-    required DateTime updatedAt,
+    String? ownerId,
+    String? status,
+    String? lastSeenAt,
+    String? createdAt,
+    String? updatedAt,
+    bool? suspended,
+    bool? isOnline,
+    int? wifiSignal,
+    double? ohtWaterLevel,
+    double? ugtWaterLevel,
+    bool? ohtEnabled,
+    String? ohtMode,
+    String? ohtState,
+    bool? ugtEnabled,
+    Map<String, dynamic>? oht,
+    Map<String, dynamic>? ugt,
+    Map<String, dynamic>? subscription,
   }) = _Device;
 
   factory Device.fromJson(Map<String, dynamic> json) => _$DeviceFromJson(json);
+
+  String get displayName => nickname ?? macAddress ?? 'SmartTank';
 }
 
 // Motor control — Swagger-verified: motor = "oht" | "ugt", action = "ON" | "OFF"
@@ -34,12 +49,13 @@ class MotorControlRequest with _$MotorControlRequest {
       _$MotorControlRequestFromJson(json);
 }
 
-// Claim device — Swagger-verified: only claimCode required (secretKey is BLE-only)
+// Claim device — Swagger-verified: requires claimCode, macAddress, and signature
 @freezed
 class ClaimDeviceRequest with _$ClaimDeviceRequest {
   const factory ClaimDeviceRequest({
     required String claimCode,
-    // secretKey is NOT sent to API — goes from app to firmware via BLE
+    required String macAddress,
+    required String signature,
   }) = _ClaimDeviceRequest;
 
   factory ClaimDeviceRequest.fromJson(Map<String, dynamic> json) =>

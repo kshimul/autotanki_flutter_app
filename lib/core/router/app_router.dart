@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'route_names.dart';
@@ -144,9 +145,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 // MAIN SHELL — Bottom navigation bar
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _MainShell extends StatelessWidget {
+class _MainShell extends StatefulWidget {
   final Widget child;
   const _MainShell({required this.child});
+
+  @override
+  State<_MainShell> createState() => _MainShellState();
+}
+
+class _MainShellState extends State<_MainShell> {
+  DateTime? _lastBackPressTime;
 
   static const _tabs = [
     (icon: Icons.home_outlined, activeIcon: Icons.home, label: 'Home', route: RouteNames.dashboard),
@@ -167,18 +175,38 @@ class _MainShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentIndex = _currentIndex(context);
-    return Scaffold(
-      body: child,
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: currentIndex,
-        onTap: (index) => context.go(_tabs[index].route),
-        items: _tabs
-            .map((tab) => BottomNavigationBarItem(
-                  icon: Icon(tab.icon),
-                  activeIcon: Icon(tab.activeIcon),
-                  label: tab.label,
-                ))
-            .toList(),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+
+        final now = DateTime.now();
+        if (_lastBackPressTime == null || 
+            now.difference(_lastBackPressTime!) > const Duration(seconds: 2)) {
+          _lastBackPressTime = now;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Press back again to exit'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        } else {
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        body: widget.child,
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: currentIndex,
+          onTap: (index) => context.go(_tabs[index].route),
+          items: _tabs
+              .map((tab) => BottomNavigationBarItem(
+                    icon: Icon(tab.icon),
+                    activeIcon: Icon(tab.activeIcon),
+                    label: tab.label,
+                  ))
+              .toList(),
+        ),
       ),
     );
   }

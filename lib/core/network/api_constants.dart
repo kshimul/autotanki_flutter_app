@@ -18,6 +18,7 @@ class ApiConstants {
   static const String resetPassword   = '/api/v1/auth/reset-password';
 
   // ─── Devices ───────────────────────────────────────────────────────────────
+  static const String dashboard        = '/api/v1/dashboard';
   static const String devices          = '/api/v1/devices';
   static const String claimDevice      = '/api/v1/devices/claim';
   static const String sharedWithMe     = '/api/v1/devices/shared-with-me';
@@ -28,7 +29,9 @@ class ApiConstants {
   static String motorControl(String deviceId, String motor) =>
       '/api/v1/devices/$deviceId/motor/$motor/control';
 
-  static String tankConfig(String id)    => '/api/v1/devices/$id/tank-config';
+  static String motorConfig(String deviceId, String motor) =>
+      '/api/v1/devices/$deviceId/motor/$motor/config';
+
   static String deviceSettings(String id) => '/api/v1/devices/$id/settings';
   static String telemetry(String id)     => '/api/v1/devices/$id/telemetry';
 
@@ -49,23 +52,20 @@ class ApiConstants {
   static String ticketById(String id) => '/api/v1/support/tickets/$id';
 
   // ─── Schedules ─────────────────────────────────────────────────────────────
-  static const String schedules        = '/api/v1/schedules';
-  static String scheduleById(String id) => '/api/v1/schedules/$id';
+  static String schedules(String id)      => '/api/v1/devices/$id/schedules';
+  static String scheduleById(String deviceId, String scheduleId) => '/api/v1/devices/$deviceId/schedules/$scheduleId';
+
   // ─── User / Profile ────────────────────────────────────────────────────────
   static const String profile        = '/api/v1/auth/profile';        // GET/PATCH
   static const String changePassword = '/api/v1/auth/change-password'; // POST
 
   // ─── Tank / Device Config ──────────────────────────────────────────────────
   static const String tankTypes = '/api/v1/devices/tank-types'; // GET predefined sizes
-  static String deviceConfig(String id) => '/api/v1/devices/$id/tank-config'; // alias
+  static String tankConfig(String id) => '/api/v1/devices/$id/tank'; // alias for PUT tank settings
 
   // ─── Device Shares ─────────────────────────────────────────────────────────
   static String deviceShareById(String deviceId, String shareId) =>
       '/api/v1/devices/$deviceId/shares/$shareId'; // DELETE
-
-  // ─── Subscriptions (device-scoped) ─────────────────────────────────────────
-  static String deviceSubscription(String deviceId) =>
-      '/api/v1/subscriptions/device/$deviceId'; // GET active subscription for device
 
   // ─── Support (alias matching repository usage) ─────────────────────────────
   static const String supportTickets = '/api/v1/support/tickets'; // GET list / POST new

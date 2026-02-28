@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../../../core/utils/haptics.dart';
@@ -132,6 +133,12 @@ class MotorIntentNotifier
   }
 
   String _parseError(Object e) {
+    if (e is DioException && e.response?.data is Map) {
+      final mapData = e.response!.data as Map;
+      final apiError = mapData['error']?['message'] ?? mapData['message'];
+      if (apiError != null) return apiError.toString();
+    }
+
     final msg = e.toString().toLowerCase();
     if (msg.contains('403') || msg.contains('billing')) {
       return 'সাবস্ক্রিপশন নেই। Billing থেকে সক্রিয় করুন।';
