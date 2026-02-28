@@ -59,9 +59,13 @@ class DeviceSelectorNotifier extends StateNotifier<Device?> {
 
     // Re-subscribe MQTT topics on device switch
     if (previous != null && previous.id != device.id) {
-      _mqtt.unsubscribeDeviceTopics(previous.id);
+      if (previous.macAddress != null) {
+        _mqtt.unsubscribeDeviceTopics(previous.macAddress!);
+      }
     }
-    _mqtt.subscribeDeviceTopics(device.id);
+    if (device.macAddress != null) {
+      _mqtt.subscribeDeviceTopics(device.macAddress!);
+    }
   }
 }
 
@@ -84,21 +88,21 @@ final deviceListProvider = FutureProvider.autoDispose<List<Device>>((ref) async 
 // ─────────────────────────────────────────────────────────────────────────────
 
 final telemetryStreamProvider =
-    StreamProvider.family<TelemetryData, String>((ref, deviceId) async* {
+    StreamProvider.family<TelemetryData, Device>((ref, device) async* {
   final mqtt   = ref.watch(mqttClientProvider);
   final cache  = ref.watch(telemetryCacheRepositoryProvider);
 
   final controller = StreamController<TelemetryData>.broadcast();
 
   // Listen to decoded MQTT messages for this device's telemetry topic
-  final topic = 'devices/$deviceId/telemetry';
+  final topic = 'v1/devices/${device.macAddress}/telemetry';
   final sub = mqtt.messageStream
       .where((msg) => msg.topic == topic)
       .listen((msg) {
     try {
       final json = jsonDecode(msg.payload) as Map<String, dynamic>;
       // Inject deviceId (not in MQTT payload — inferred from topic)
-      json['deviceId'] = deviceId;
+      json['deviceId'] = device.id;
       final data = TelemetryData.fromJson(json);
 
       // Write-through: persist to Isar for 30-day history
@@ -106,8 +110,8 @@ final telemetryStreamProvider =
 
       // Sync motor intent states with live telemetry
       // (doesn't interrupt pending user intents — handled inside notifier)
-      final ohtArgs = (deviceId: deviceId, motorId: 'oht', initialIsRunning: data.ohtMotorState == 'ON');
-      final ugtArgs = (deviceId: deviceId, motorId: 'ugt', initialIsRunning: data.ugtMotorState == 'ON');
+      final ohtArgs = (deviceId: device.id, motorId: 'oht', initialIsRunning: data.ohtMotorState == 'ON');
+      final ugtArgs = (deviceId: device.id, motorId: 'ugt', initialIsRunning: data.ugtMotorState == 'ON');
       ref.read(motorIntentProvider(ohtArgs).notifier).syncFromTelemetry(data.ohtMotorState == 'ON');
       ref.read(motorIntentProvider(ugtArgs).notifier).syncFromTelemetry(data.ugtMotorState == 'ON');
 

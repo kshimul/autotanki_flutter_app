@@ -13,7 +13,7 @@ class EnvConfig {
   static const String baseUrl = String.fromEnvironment(
     'BASE_URL',
     defaultValue:
-        'https://glad-responsible-musical-chances.trycloudflare.com', // Android emulator → localhost
+        'https://corporations-bearing-languages-erp.trycloudflare.com', // Android emulator → localhost
   );
 
   static const String mqttBrokerUrl = String.fromEnvironment(

@@ -50,7 +50,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     // Cache: show immediately on cold start
     final cachedAsync  = ref.watch(cachedTelemetryProvider(device.id));
     // Live: takes over when MQTT connects (null until stream emits)
-    final liveAsync    = ref.watch(telemetryStreamProvider(device.id));
+    final liveAsync    = ref.watch(telemetryStreamProvider(device));
 
     // Prefer live data; fall back to cache; fall back to API summary
     final telemetry = liveAsync.valueOrNull ?? cachedAsync.valueOrNull ?? _createFallbackTelemetry(device);
@@ -299,6 +299,7 @@ class _DashboardContent extends StatelessWidget {
             motorId: 'oht',
             initialIsRunning: data.ohtMotorState == 'ON',
             label: 'OHT Motor',
+            disabled: data.firmwareOhtMode == 'AUTO',
           ),
           const SizedBox(height: Spacing.sm),
           IntentButton(
@@ -306,6 +307,7 @@ class _DashboardContent extends StatelessWidget {
             motorId: 'ugt',
             initialIsRunning: data.ugtMotorState == 'ON',
             label: 'UGT Motor',
+            disabled: data.firmwareUgtMode == 'AUTO',
           ),
           const SizedBox(height: Spacing.md),
 
@@ -398,7 +400,7 @@ class _SystemInfoCard extends ConsumerWidget {
   }
 }
 
-class _ModeToggleSwitch extends ConsumerWidget {
+class _ModeToggleSwitch extends ConsumerStatefulWidget {
   final String deviceId;
   final String motorId;
   final String currentMode; // 'AUTO' | 'MANUAL'
@@ -410,8 +412,25 @@ class _ModeToggleSwitch extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isAuto = currentMode == 'AUTO';
+  ConsumerState<_ModeToggleSwitch> createState() => _ModeToggleSwitchState();
+}
+
+class _ModeToggleSwitchState extends ConsumerState<_ModeToggleSwitch> {
+  String? _optimisticMode;
+
+  @override
+  void didUpdateWidget(covariant _ModeToggleSwitch oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentMode != widget.currentMode) {
+      // External state updated, clear our optimistic prediction
+      _optimisticMode = null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final effectiveMode = _optimisticMode ?? widget.currentMode;
+    final isAuto = effectiveMode == 'AUTO';
 
     return Container(
       decoration: BoxDecoration(
@@ -426,34 +445,42 @@ class _ModeToggleSwitch extends ConsumerWidget {
             label: 'AUTO',
             isActive: isAuto,
             activeColor: AppColors.primary,
-            onTap: () => _setMode(context, ref, 'AUTO'),
+            onTap: () => _setMode('AUTO'),
           ),
           _ModeItem(
             label: 'MANUAL',
             isActive: !isAuto,
             activeColor: AppColors.warning,
-            onTap: () => _setMode(context, ref, 'MANUAL'),
+            onTap: () => _setMode('MANUAL'),
           ),
         ],
       ),
     );
   }
 
-  Future<void> _setMode(BuildContext context, WidgetRef ref, String mode) async {
-    if (currentMode == mode) return;
+  Future<void> _setMode(String mode) async {
+    final previousMode = _optimisticMode ?? widget.currentMode;
+    if (previousMode == mode) return;
+
+    setState(() {
+      _optimisticMode = mode;
+    });
 
     try {
       final repo = ref.read(dashboardRepositoryProvider);
-      await repo.setMode(deviceId: deviceId, motor: motorId, mode: mode);
+      await repo.setMode(deviceId: widget.deviceId, motor: widget.motorId, mode: mode);
       
       // Refresh to grab updated summary payload
       ref.invalidate(deviceListProvider);
-      ref.read(deviceSelectorProvider.notifier).loadDevices();
+      ref.read(deviceSelectorProvider.notifier).refreshDevices();
     } catch (e) {
-      if (context.mounted) {
+      if (mounted) {
+        setState(() {
+          _optimisticMode = null; // Revert
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to change $motorId mode to $mode'),
+            content: Text('Failed to change ${widget.motorId} mode to $mode'),
             backgroundColor: AppColors.danger,
           ),
         );

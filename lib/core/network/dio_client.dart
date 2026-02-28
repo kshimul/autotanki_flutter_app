@@ -32,6 +32,7 @@ Dio createDio() {
 
   dio.interceptors.addAll([
     _AuthInterceptor(dio),
+    LogInterceptor(requestBody: true, responseBody: true),
     SanitizerInterceptor(),
   ]);
 
