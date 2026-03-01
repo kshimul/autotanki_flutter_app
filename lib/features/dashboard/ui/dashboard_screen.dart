@@ -47,13 +47,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       });
     }
 
-    // Cache: show immediately on cold start
-    final cachedAsync  = ref.watch(cachedTelemetryProvider(device.id));
     // Live: takes over when MQTT connects (null until stream emits)
     final liveAsync    = ref.watch(telemetryStreamProvider(device));
 
-    // Prefer live data; fall back to cache; fall back to API summary
-    final telemetry = liveAsync.valueOrNull ?? cachedAsync.valueOrNull ?? _createFallbackTelemetry(device);
+    // Prefer live MQTT data; fall back to Device summary (which includes fresh API or Isar cache)
+    final telemetry = liveAsync.valueOrNull ?? _createFallbackTelemetry(device);
 
     return Scaffold(
       backgroundColor: AppColors.bgDark,
@@ -417,6 +415,7 @@ class _ModeToggleSwitch extends ConsumerStatefulWidget {
 
 class _ModeToggleSwitchState extends ConsumerState<_ModeToggleSwitch> {
   String? _optimisticMode;
+  bool _isLoading = false;
 
   @override
   void didUpdateWidget(covariant _ModeToggleSwitch oldWidget) {
@@ -444,14 +443,16 @@ class _ModeToggleSwitchState extends ConsumerState<_ModeToggleSwitch> {
           _ModeItem(
             label: 'AUTO',
             isActive: isAuto,
+            isLoading: _isLoading && _optimisticMode == 'AUTO',
             activeColor: AppColors.primary,
-            onTap: () => _setMode('AUTO'),
+            onTap: _isLoading ? () {} : () => _setMode('AUTO'),
           ),
           _ModeItem(
             label: 'MANUAL',
             isActive: !isAuto,
+            isLoading: _isLoading && _optimisticMode == 'MANUAL',
             activeColor: AppColors.warning,
-            onTap: () => _setMode('MANUAL'),
+            onTap: _isLoading ? () {} : () => _setMode('MANUAL'),
           ),
         ],
       ),
@@ -464,6 +465,7 @@ class _ModeToggleSwitchState extends ConsumerState<_ModeToggleSwitch> {
 
     setState(() {
       _optimisticMode = mode;
+      _isLoading = true;
     });
 
     try {
@@ -472,11 +474,19 @@ class _ModeToggleSwitchState extends ConsumerState<_ModeToggleSwitch> {
       
       // Refresh to grab updated summary payload
       ref.invalidate(deviceListProvider);
+      // await ref.read(deviceSelectorProvider.notifier).refreshDevices();
       ref.read(deviceSelectorProvider.notifier).refreshDevices();
+      
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
           _optimisticMode = null; // Revert
+          _isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -492,12 +502,14 @@ class _ModeToggleSwitchState extends ConsumerState<_ModeToggleSwitch> {
 class _ModeItem extends StatelessWidget {
   final String label;
   final bool isActive;
+  final bool isLoading;
   final Color activeColor;
   final VoidCallback onTap;
 
   const _ModeItem({
     required this.label,
     required this.isActive,
+    this.isLoading = false,
     required this.activeColor,
     required this.onTap,
   });
@@ -508,18 +520,37 @@ class _ModeItem extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color: isActive ? activeColor.withOpacity(0.15) : Colors.transparent,
           borderRadius: BorderRadius.circular(AppRadius.full),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isActive ? activeColor : AppColors.textTertiary,
-            fontSize: 12,
-            fontWeight: isActive ? FontWeight.w800 : FontWeight.w500,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isLoading) ...[
+              SizedBox(
+                width: 10,
+                height: 10,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: activeColor,
+                ),
+              ),
+              const SizedBox(width: Spacing.xs),
+            ],
+            Flexible(
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: isActive ? activeColor : AppColors.textTertiary,
+                  fontSize: 12,
+                  fontWeight: isActive ? FontWeight.w800 : FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
