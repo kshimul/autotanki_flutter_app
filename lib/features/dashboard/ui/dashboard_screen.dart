@@ -8,6 +8,7 @@ import '../../../shared/models/device_model.dart';
 import '../../../shared/models/telemetry_model.dart';
 import '../data/dashboard_repository.dart';
 import '../application/dashboard_providers.dart';
+import '../../../shared/widgets/rename_device_dialog.dart';
 import 'widgets/interactive_tank.dart';
 import 'widgets/intent_button.dart';
 import 'widgets/connection_badge.dart';
@@ -61,7 +62,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             children: [
               // ── App Bar ────────────────────────────────────────────────
               _DashboardAppBar(
-                deviceName: device.displayName,
+                device: device,
                 onDeviceTap: () => _showDevicePicker(context, ref),
               ),
 
@@ -133,17 +134,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
 // ─── App Bar ──────────────────────────────────────────────────────────────────
 
-class _DashboardAppBar extends StatelessWidget {
-  final String deviceName;
+class _DashboardAppBar extends ConsumerWidget {
+  final Device device;
   final VoidCallback onDeviceTap;
 
   const _DashboardAppBar({
-    required this.deviceName,
+    required this.device,
     required this.onDeviceTap,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.symmetric(
           horizontal: Spacing.lg, vertical: Spacing.sm),
@@ -166,16 +167,40 @@ class _DashboardAppBar extends StatelessWidget {
                         color: AppColors.primary, size: 18),
                   ),
                   const SizedBox(width: Spacing.sm),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        deviceName,
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
-                        ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                device.displayName,
+                                style: const TextStyle(
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 15,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: Spacing.xs),
+                          GestureDetector(
+                            onTap: () async {
+                              final newName = await RenameDeviceDialog.show(
+                                context,
+                                initialName: device.displayName,
+                              );
+                              if (newName != null && newName.isNotEmpty && newName != device.displayName) {
+                                await ref.read(deviceSelectorProvider.notifier)
+                                    .updateDeviceNickname(newName);
+                              }
+                            },
+                            child: const Icon(Icons.edit_outlined,
+                                color: AppColors.textTertiary, size: 14),
+                          ),
+                        ],
                       ),
                       Row(
                         children: [
@@ -188,7 +213,8 @@ class _DashboardAppBar extends StatelessWidget {
                               color: AppColors.textTertiary, size: 12),
                         ],
                       ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),

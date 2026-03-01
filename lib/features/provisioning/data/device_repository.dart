@@ -80,6 +80,15 @@ class DeviceRepository {
   Future<void> deleteDevice(String deviceId) async {
     await _dio.delete(ApiConstants.deviceById(deviceId));
   }
+
+  Future<void> updateDeviceSettings(String deviceId, {String? nickname}) async {
+    await _dio.put(
+      ApiConstants.deviceSettings(deviceId),
+      data: {
+        if (nickname != null) 'nickname': nickname,
+      },
+    );
+  }
 }
 
 final deviceRepositoryProvider = Provider<DeviceRepository>((ref) {

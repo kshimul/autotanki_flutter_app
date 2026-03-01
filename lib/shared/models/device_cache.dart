@@ -20,6 +20,7 @@ class DeviceCache {
 
   // Primary Info
   late String displayName;
+  String? localNickname; // User-defined alias that overrides displayName on UI only
   String? macAddress;
   String? tankTypeId;
   String? ownerId;
@@ -55,9 +56,10 @@ extension DeviceToCacheMapper on Device {
       ..isOnline = isOnline
       ..wifiSignal = wifiSignal
       ..ohtWaterLevel = ohtWaterLevel
-      ..ugtWaterLevel = ugtWaterLevel
+      ..ugtWaterLevel = ugtWaterLevel?.toDouble()
       ..ohtJson = oht != null ? jsonEncode(oht) : null
       ..ugtJson = ugt != null ? jsonEncode(ugt) : null
+      ..localNickname = nickname // Map API nickname to local, though it may be overwritten later
       ..rawJson = jsonEncode(toJson())
       ..lastUpdated = DateTime.now();
 

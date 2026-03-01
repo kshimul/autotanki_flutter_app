@@ -37,53 +37,58 @@ const DeviceCacheSchema = CollectionSchema(
       name: r'lastUpdated',
       type: IsarType.dateTime,
     ),
-    r'macAddress': PropertySchema(
+    r'localNickname': PropertySchema(
       id: 4,
+      name: r'localNickname',
+      type: IsarType.string,
+    ),
+    r'macAddress': PropertySchema(
+      id: 5,
       name: r'macAddress',
       type: IsarType.string,
     ),
     r'ohtJson': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'ohtJson',
       type: IsarType.string,
     ),
     r'ohtWaterLevel': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'ohtWaterLevel',
       type: IsarType.double,
     ),
     r'ownerId': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'ownerId',
       type: IsarType.string,
     ),
     r'rawJson': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'rawJson',
       type: IsarType.string,
     ),
     r'status': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'status',
       type: IsarType.string,
     ),
     r'tankTypeId': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'tankTypeId',
       type: IsarType.string,
     ),
     r'ugtJson': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'ugtJson',
       type: IsarType.string,
     ),
     r'ugtWaterLevel': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'ugtWaterLevel',
       type: IsarType.double,
     ),
     r'wifiSignal': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'wifiSignal',
       type: IsarType.long,
     )
@@ -124,6 +129,12 @@ int _deviceCacheEstimateSize(
   var bytesCount = offsets.last;
   bytesCount += 3 + object.deviceId.length * 3;
   bytesCount += 3 + object.displayName.length * 3;
+  {
+    final value = object.localNickname;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   {
     final value = object.macAddress;
     if (value != null) {
@@ -174,16 +185,17 @@ void _deviceCacheSerialize(
   writer.writeString(offsets[1], object.displayName);
   writer.writeBool(offsets[2], object.isOnline);
   writer.writeDateTime(offsets[3], object.lastUpdated);
-  writer.writeString(offsets[4], object.macAddress);
-  writer.writeString(offsets[5], object.ohtJson);
-  writer.writeDouble(offsets[6], object.ohtWaterLevel);
-  writer.writeString(offsets[7], object.ownerId);
-  writer.writeString(offsets[8], object.rawJson);
-  writer.writeString(offsets[9], object.status);
-  writer.writeString(offsets[10], object.tankTypeId);
-  writer.writeString(offsets[11], object.ugtJson);
-  writer.writeDouble(offsets[12], object.ugtWaterLevel);
-  writer.writeLong(offsets[13], object.wifiSignal);
+  writer.writeString(offsets[4], object.localNickname);
+  writer.writeString(offsets[5], object.macAddress);
+  writer.writeString(offsets[6], object.ohtJson);
+  writer.writeDouble(offsets[7], object.ohtWaterLevel);
+  writer.writeString(offsets[8], object.ownerId);
+  writer.writeString(offsets[9], object.rawJson);
+  writer.writeString(offsets[10], object.status);
+  writer.writeString(offsets[11], object.tankTypeId);
+  writer.writeString(offsets[12], object.ugtJson);
+  writer.writeDouble(offsets[13], object.ugtWaterLevel);
+  writer.writeLong(offsets[14], object.wifiSignal);
 }
 
 DeviceCache _deviceCacheDeserialize(
@@ -198,16 +210,17 @@ DeviceCache _deviceCacheDeserialize(
   object.id = id;
   object.isOnline = reader.readBoolOrNull(offsets[2]);
   object.lastUpdated = reader.readDateTime(offsets[3]);
-  object.macAddress = reader.readStringOrNull(offsets[4]);
-  object.ohtJson = reader.readStringOrNull(offsets[5]);
-  object.ohtWaterLevel = reader.readDoubleOrNull(offsets[6]);
-  object.ownerId = reader.readStringOrNull(offsets[7]);
-  object.rawJson = reader.readString(offsets[8]);
-  object.status = reader.readStringOrNull(offsets[9]);
-  object.tankTypeId = reader.readStringOrNull(offsets[10]);
-  object.ugtJson = reader.readStringOrNull(offsets[11]);
-  object.ugtWaterLevel = reader.readDoubleOrNull(offsets[12]);
-  object.wifiSignal = reader.readLongOrNull(offsets[13]);
+  object.localNickname = reader.readStringOrNull(offsets[4]);
+  object.macAddress = reader.readStringOrNull(offsets[5]);
+  object.ohtJson = reader.readStringOrNull(offsets[6]);
+  object.ohtWaterLevel = reader.readDoubleOrNull(offsets[7]);
+  object.ownerId = reader.readStringOrNull(offsets[8]);
+  object.rawJson = reader.readString(offsets[9]);
+  object.status = reader.readStringOrNull(offsets[10]);
+  object.tankTypeId = reader.readStringOrNull(offsets[11]);
+  object.ugtJson = reader.readStringOrNull(offsets[12]);
+  object.ugtWaterLevel = reader.readDoubleOrNull(offsets[13]);
+  object.wifiSignal = reader.readLongOrNull(offsets[14]);
   return object;
 }
 
@@ -231,20 +244,22 @@ P _deviceCacheDeserializeProp<P>(
     case 5:
       return (reader.readStringOrNull(offset)) as P;
     case 6:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 7:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 8:
-      return (reader.readString(offset)) as P;
-    case 9:
       return (reader.readStringOrNull(offset)) as P;
+    case 9:
+      return (reader.readString(offset)) as P;
     case 10:
       return (reader.readStringOrNull(offset)) as P;
     case 11:
       return (reader.readStringOrNull(offset)) as P;
     case 12:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 13:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 14:
       return (reader.readLongOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -848,6 +863,160 @@ extension DeviceCacheQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<DeviceCache, DeviceCache, QAfterFilterCondition>
+      localNicknameIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'localNickname',
+      ));
+    });
+  }
+
+  QueryBuilder<DeviceCache, DeviceCache, QAfterFilterCondition>
+      localNicknameIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'localNickname',
+      ));
+    });
+  }
+
+  QueryBuilder<DeviceCache, DeviceCache, QAfterFilterCondition>
+      localNicknameEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'localNickname',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DeviceCache, DeviceCache, QAfterFilterCondition>
+      localNicknameGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'localNickname',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DeviceCache, DeviceCache, QAfterFilterCondition>
+      localNicknameLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'localNickname',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DeviceCache, DeviceCache, QAfterFilterCondition>
+      localNicknameBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'localNickname',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DeviceCache, DeviceCache, QAfterFilterCondition>
+      localNicknameStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'localNickname',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DeviceCache, DeviceCache, QAfterFilterCondition>
+      localNicknameEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'localNickname',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DeviceCache, DeviceCache, QAfterFilterCondition>
+      localNicknameContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'localNickname',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DeviceCache, DeviceCache, QAfterFilterCondition>
+      localNicknameMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'localNickname',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DeviceCache, DeviceCache, QAfterFilterCondition>
+      localNicknameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'localNickname',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<DeviceCache, DeviceCache, QAfterFilterCondition>
+      localNicknameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'localNickname',
+        value: '',
       ));
     });
   }
@@ -2200,6 +2369,19 @@ extension DeviceCacheQuerySortBy
     });
   }
 
+  QueryBuilder<DeviceCache, DeviceCache, QAfterSortBy> sortByLocalNickname() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localNickname', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DeviceCache, DeviceCache, QAfterSortBy>
+      sortByLocalNicknameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localNickname', Sort.desc);
+    });
+  }
+
   QueryBuilder<DeviceCache, DeviceCache, QAfterSortBy> sortByMacAddress() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'macAddress', Sort.asc);
@@ -2385,6 +2567,19 @@ extension DeviceCacheQuerySortThenBy
     });
   }
 
+  QueryBuilder<DeviceCache, DeviceCache, QAfterSortBy> thenByLocalNickname() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localNickname', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DeviceCache, DeviceCache, QAfterSortBy>
+      thenByLocalNicknameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localNickname', Sort.desc);
+    });
+  }
+
   QueryBuilder<DeviceCache, DeviceCache, QAfterSortBy> thenByMacAddress() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'macAddress', Sort.asc);
@@ -2536,6 +2731,14 @@ extension DeviceCacheQueryWhereDistinct
     });
   }
 
+  QueryBuilder<DeviceCache, DeviceCache, QDistinct> distinctByLocalNickname(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'localNickname',
+          caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<DeviceCache, DeviceCache, QDistinct> distinctByMacAddress(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2633,6 +2836,12 @@ extension DeviceCacheQueryProperty
   QueryBuilder<DeviceCache, DateTime, QQueryOperations> lastUpdatedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastUpdated');
+    });
+  }
+
+  QueryBuilder<DeviceCache, String?, QQueryOperations> localNicknameProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'localNickname');
     });
   }
 

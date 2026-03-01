@@ -101,6 +101,26 @@ class DeviceSelectorNotifier extends StateNotifier<Device?> {
     }
   }
 
+  Future<void> updateDeviceNickname(String newNickname) async {
+    final currentDevice = state;
+    if (currentDevice == null) return;
+
+    // 1. Optimitically update UI State
+    final updatedDevice = currentDevice.copyWith(nickname: newNickname);
+    state = updatedDevice;
+
+    // 2. Update Isar Offline Cache (Local Alias Strategy — No API Call)
+    if (_isar != null) {
+      final cache = await _isar!.deviceCaches.getByDeviceId(currentDevice.id);
+      if (cache != null) {
+        cache.localNickname = newNickname;
+        await _isar!.writeTxn(() async {
+          await _isar!.deviceCaches.put(cache);
+        });
+      }
+    }
+  }
+
   Future<void> selectDevice(Device device) async {
     final previous = state;
     state = device;
