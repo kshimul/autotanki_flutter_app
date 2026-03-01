@@ -77,28 +77,47 @@ class _AuthInterceptor extends QueuedInterceptorsWrapper {
       return;
     }
 
-    if (isUnauthorized && !_isRefreshing) {
-      _isRefreshing = true;
-      try {
-        final newToken = await _refreshAccessToken();
-        if (newToken != null) {
-          // Retry original request with new token
-          final retryOptions = err.requestOptions
-            ..headers['Authorization'] = 'Bearer $newToken';
+    if (isUnauthorized) {
+      // Check if token was already refreshed by another queued request
+      final currentToken = await _secureStorage.read(key: _accessTokenKey);
+      final oldHeader = err.requestOptions.headers['Authorization'] as String?;
+      final oldToken = oldHeader?.replaceAll('Bearer ', '');
+
+      if (currentToken != null && oldToken != null && currentToken != oldToken) {
+        // Token was refreshed. Retry immediately.
+        final retryOptions = err.requestOptions
+          ..headers['Authorization'] = 'Bearer $currentToken';
+        try {
           final response = await _dio.fetch(retryOptions);
           handler.resolve(response);
-        } else {
-          handler.next(err);
+          return;
+        } catch (_) {
+          // If retry still fails, fall through
         }
-      } catch (_) {
-        await _clearTokens();
-        handler.next(err);
-      } finally {
-        _isRefreshing = false;
       }
-    } else {
-      handler.next(err);
+
+      if (!_isRefreshing) {
+        _isRefreshing = true;
+        try {
+          final newToken = await _refreshAccessToken();
+          if (newToken != null) {
+            // Retry original request with new token
+            final retryOptions = err.requestOptions
+              ..headers['Authorization'] = 'Bearer $newToken';
+            final response = await _dio.fetch(retryOptions);
+            handler.resolve(response);
+            return;
+          }
+        } catch (_) {
+          await _clearTokens();
+        } finally {
+          _isRefreshing = false;
+        }
+      }
     }
+    
+    // Fall-through for non-401 errors, or if refresh failed
+    handler.next(err);
   }
 
   Future<String?> _refreshAccessToken() async {
@@ -112,8 +131,11 @@ class _AuthInterceptor extends QueuedInterceptorsWrapper {
         ApiConstants.refresh,
         data: {'refreshToken': refreshToken},
       );
-      final newAccessToken = response.data['accessToken'] as String?;
-      final newRefreshToken = response.data['refreshToken'] as String?;
+      final rawData = response.data as Map<String, dynamic>;
+      final data = rawData['data'] as Map<String, dynamic>? ?? rawData;
+      
+      final newAccessToken = data['accessToken'] as String?;
+      final newRefreshToken = data['refreshToken'] as String?;
 
       if (newAccessToken != null) {
         await _secureStorage.write(key: _accessTokenKey, value: newAccessToken);
