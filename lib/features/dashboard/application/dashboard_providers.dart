@@ -100,10 +100,25 @@ final telemetryStreamProvider =
       .where((msg) => msg.topic == topic)
       .listen((msg) {
     try {
-      final json = jsonDecode(msg.payload) as Map<String, dynamic>;
-      // Inject deviceId (not in MQTT payload — inferred from topic)
-      json['deviceId'] = device.id;
-      final data = TelemetryData.fromJson(json);
+      final rawJson = jsonDecode(msg.payload) as Map<String, dynamic>;
+      
+      // The ESP32 sends a flat struct: { ohtLevel, ugtLevel, ohtState, ugtState, energyWh, etc }
+      // We map it to the Freezed JSON schema expected by TelemetryData
+      final mappedJson = <String, dynamic>{
+        'deviceId': device.id,
+        'ohtLevel': (rawJson['ohtLevel'] as num?)?.toDouble() ?? device.ohtWaterLevel ?? 0.0,
+        'ugtLevel': (rawJson['ugtLevel'] as num?)?.toDouble() ?? device.ugtWaterLevel ?? 0.0,
+        'ohtMotorState': rawJson['ohtState'] ?? device.ohtState ?? (device.oht?['state'] as String?) ?? 'OFF',
+        'ugtMotorState': rawJson['ugtState'] ?? (device.ugt?['state'] as String?) ?? 'OFF',
+        'powerWatts': 0.0,
+        'energyKwh': (rawJson['energyWh'] as num?) != null ? (rawJson['energyWh'] as num).toDouble() / 1000.0 : 0.0,
+        'firmwareOhtMode': device.ohtMode ?? (device.oht?['mode'] as String?) ?? 'AUTO',
+        'firmwareUgtMode': (device.ugt?['mode'] as String?) ?? 'AUTO',
+        'isSystemSuspended': device.suspended ?? false,
+        'timestamp': DateTime.now().toIso8601String(),
+      };
+
+      final data = TelemetryData.fromJson(mappedJson);
 
       // Write-through: persist to Isar for 30-day history
       cache?.upsert(data);
