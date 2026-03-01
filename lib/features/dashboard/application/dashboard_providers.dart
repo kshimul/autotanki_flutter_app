@@ -7,6 +7,9 @@ import '../../../shared/models/telemetry_model.dart';
 import '../../dashboard/data/telemetry_cache_repository.dart';
 import '../../dashboard/application/motor_intent_notifier.dart';
 import 'dart:convert';
+import 'package:isar/isar.dart';
+import '../../../main.dart';
+import '../../../shared/models/device_cache.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DEVICE SELECTOR PROVIDER
@@ -16,19 +19,50 @@ import 'dart:convert';
 class DeviceSelectorNotifier extends StateNotifier<Device?> {
   final DeviceRepository _deviceRepo;
   final AppMqttClient _mqtt;
+  final Isar? _isar;
 
-  DeviceSelectorNotifier(this._deviceRepo, this._mqtt) : super(null);
+  DeviceSelectorNotifier(this._deviceRepo, this._mqtt, this._isar) : super(null);
 
   // Loads devices and selects the first one if none is selected yet.
-  // Safe to call repeatedly — won't override an existing manual selection.
+  // Implements Stale-While-Revalidate (Offline-First) pattern.
   Future<void> loadDevices() async {
+    // 1. Instantly load from Isar Cache
+    if (_isar != null && state == null) {
+      final cached = await _isar!.deviceCaches.where().findAll();
+      if (cached.isNotEmpty) {
+        // Hydrate from Isar and show UI instantly
+        final models = cached.map((c) => c.toModel()).toList();
+        await selectDevice(models.first);
+      }
+    }
+
+    // 2. Fetch fresh data from API silently in the background
     try {
       final devices = await _deviceRepo.getMyDevices();
-      if (devices.isNotEmpty && state == null) {
-        await selectDevice(devices.first);
+      
+      // Save fresh devices to Isar
+      if (_isar != null && devices.isNotEmpty) {
+        await _isar!.writeTxn(() async {
+          await _isar!.deviceCaches.clear(); // Prune deleted devices
+          await _isar!.deviceCaches.putAll(devices.map((d) => d.toIsarCache()).toList());
+        });
+      }
+
+      // 3. Update UI with fresh data if we didn't have cache OR data changed (reference equality check works with Freezed)
+      if (devices.isNotEmpty) {
+        if (state == null) {
+          await selectDevice(devices.first);
+        } else {
+          // If the selected device was updated, re-emit to trigger rebuilds
+          final updated = devices.firstWhere((d) => d.id == state!.id, orElse: () => devices.first);
+          if (updated != state) {
+            state = updated;
+          }
+        }
       }
     } catch (e) {
-      // Fail silently — UI reads deviceListProvider for error state
+      // Fail silently — UI reads deviceListProvider for error state,
+      // and we already showed the cached version!
     }
   }
 
@@ -37,12 +71,26 @@ class DeviceSelectorNotifier extends StateNotifier<Device?> {
   Future<void> refreshDevices() async {
     try {
       final devices = await _deviceRepo.getMyDevices();
+      
+      // Save fresh devices to Isar
+      if (_isar != null && devices.isNotEmpty) {
+        await _isar!.writeTxn(() async {
+          await _isar!.deviceCaches.clear(); // Prune deleted devices
+          await _isar!.deviceCaches.putAll(devices.map((d) => d.toIsarCache()).toList());
+        });
+      }
+
       if (devices.isNotEmpty) {
         // Auto-select first device if nothing is selected, or keep current if still present
         final currentId = state?.id;
         final stillExists = devices.any((d) => d.id == currentId);
         if (!stillExists) {
           await selectDevice(devices.first);
+        } else {
+          final updated = devices.firstWhere((d) => d.id == currentId);
+          if (updated != state) {
+            state = updated;
+          }
         }
       } else {
         // No devices — clear selection
@@ -71,9 +119,11 @@ class DeviceSelectorNotifier extends StateNotifier<Device?> {
 
 final deviceSelectorProvider =
     StateNotifierProvider<DeviceSelectorNotifier, Device?>((ref) {
+  final isar = ref.watch(isarProvider);
   return DeviceSelectorNotifier(
     ref.watch(deviceRepositoryProvider),
     ref.watch(mqttClientProvider),
+    isar,
   );
 });
 
@@ -100,18 +150,27 @@ final telemetryStreamProvider =
       .where((msg) => msg.topic == topic)
       .listen((msg) {
     try {
-      final rawJson = jsonDecode(msg.payload) as Map<String, dynamic>;
+      final decoded = jsonDecode(msg.payload);
+      if (decoded is! Map<String, dynamic>) return;
+      final rawJson = decoded;
+
+      double parseD(dynamic val, double fallback) {
+        if (val == null) return fallback;
+        if (val is num) return val.toDouble();
+        if (val is String) return double.tryParse(val) ?? fallback;
+        return fallback;
+      }
       
       // The ESP32 sends a flat struct: { ohtLevel, ugtLevel, ohtState, ugtState, energyWh, etc }
       // We map it to the Freezed JSON schema expected by TelemetryData
       final mappedJson = <String, dynamic>{
         'deviceId': device.id,
-        'ohtLevel': (rawJson['ohtLevel'] as num?)?.toDouble() ?? device.ohtWaterLevel ?? 0.0,
-        'ugtLevel': (rawJson['ugtLevel'] as num?)?.toDouble() ?? device.ugtWaterLevel ?? 0.0,
+        'ohtLevel': parseD(rawJson['ohtLevel'], device.ohtWaterLevel ?? 0.0),
+        'ugtLevel': parseD(rawJson['ugtLevel'], device.ugtWaterLevel ?? 0.0),
         'ohtMotorState': rawJson['ohtState'] ?? device.ohtState ?? (device.oht?['state'] as String?) ?? 'OFF',
         'ugtMotorState': rawJson['ugtState'] ?? (device.ugt?['state'] as String?) ?? 'OFF',
         'powerWatts': 0.0,
-        'energyKwh': (rawJson['energyWh'] as num?) != null ? (rawJson['energyWh'] as num).toDouble() / 1000.0 : 0.0,
+        'energyKwh': parseD(rawJson['energyWh'], 0.0) / 1000.0,
         'firmwareOhtMode': device.ohtMode ?? (device.oht?['mode'] as String?) ?? 'AUTO',
         'firmwareUgtMode': (device.ugt?['mode'] as String?) ?? 'AUTO',
         'isSystemSuspended': device.suspended ?? false,
