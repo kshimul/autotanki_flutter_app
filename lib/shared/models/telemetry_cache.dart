@@ -33,6 +33,7 @@ class TelemetryCache {
   late double energyKwh;
 
   // Firmware
-  late String firmwareMode;
+  late String firmwareOhtMode;
+  late String firmwareUgtMode;
   late bool isSystemSuspended;
 }

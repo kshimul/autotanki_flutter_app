@@ -20,7 +20,8 @@ extension TelemetryDataMapper on TelemetryData {
       ..ugtMotorState = ugtMotorState
       ..powerWatts = powerWatts
       ..energyKwh = energyKwh
-      ..firmwareMode = firmwareMode
+      ..firmwareOhtMode = firmwareOhtMode
+      ..firmwareUgtMode = firmwareUgtMode
       ..isSystemSuspended = isSystemSuspended;
     return cache;
   }
@@ -36,7 +37,8 @@ extension TelemetryCacheMapper on TelemetryCache {
         ugtMotorState: ugtMotorState,
         powerWatts: powerWatts,
         energyKwh: energyKwh,
-        firmwareMode: firmwareMode,
+        firmwareOhtMode: firmwareOhtMode,
+        firmwareUgtMode: firmwareUgtMode,
         isSystemSuspended: isSystemSuspended,
       );
 }

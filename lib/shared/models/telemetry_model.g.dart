@@ -15,7 +15,8 @@ _$TelemetryDataImpl _$$TelemetryDataImplFromJson(Map<String, dynamic> json) =>
       ugtMotorState: json['ugtMotorState'] as String,
       powerWatts: (json['powerWatts'] as num).toDouble(),
       energyKwh: (json['energyKwh'] as num).toDouble(),
-      firmwareMode: json['firmwareMode'] as String,
+      firmwareOhtMode: json['firmwareOhtMode'] as String,
+      firmwareUgtMode: json['firmwareUgtMode'] as String,
       isSystemSuspended: json['isSystemSuspended'] as bool,
       timestamp: DateTime.parse(json['timestamp'] as String),
     );
@@ -29,7 +30,8 @@ Map<String, dynamic> _$$TelemetryDataImplToJson(_$TelemetryDataImpl instance) =>
       'ugtMotorState': instance.ugtMotorState,
       'powerWatts': instance.powerWatts,
       'energyKwh': instance.energyKwh,
-      'firmwareMode': instance.firmwareMode,
+      'firmwareOhtMode': instance.firmwareOhtMode,
+      'firmwareUgtMode': instance.firmwareUgtMode,
       'isSystemSuspended': instance.isSystemSuspended,
       'timestamp': instance.timestamp.toIso8601String(),
     };

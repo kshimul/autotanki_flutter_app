@@ -33,7 +33,9 @@ mixin _$TelemetryData {
   double get energyKwh =>
       throw _privateConstructorUsedError; // Session energy kWh
 // Firmware reported
-  String get firmwareMode =>
+  String get firmwareOhtMode =>
+      throw _privateConstructorUsedError; // 'AUTO' | 'MANUAL'
+  String get firmwareUgtMode =>
       throw _privateConstructorUsedError; // 'AUTO' | 'MANUAL'
   bool get isSystemSuspended =>
       throw _privateConstructorUsedError; // SYS_SUSPENDED flag
@@ -59,7 +61,8 @@ abstract class $TelemetryDataCopyWith<$Res> {
       String ugtMotorState,
       double powerWatts,
       double energyKwh,
-      String firmwareMode,
+      String firmwareOhtMode,
+      String firmwareUgtMode,
       bool isSystemSuspended,
       DateTime timestamp});
 }
@@ -84,7 +87,8 @@ class _$TelemetryDataCopyWithImpl<$Res, $Val extends TelemetryData>
     Object? ugtMotorState = null,
     Object? powerWatts = null,
     Object? energyKwh = null,
-    Object? firmwareMode = null,
+    Object? firmwareOhtMode = null,
+    Object? firmwareUgtMode = null,
     Object? isSystemSuspended = null,
     Object? timestamp = null,
   }) {
@@ -117,9 +121,13 @@ class _$TelemetryDataCopyWithImpl<$Res, $Val extends TelemetryData>
           ? _value.energyKwh
           : energyKwh // ignore: cast_nullable_to_non_nullable
               as double,
-      firmwareMode: null == firmwareMode
-          ? _value.firmwareMode
-          : firmwareMode // ignore: cast_nullable_to_non_nullable
+      firmwareOhtMode: null == firmwareOhtMode
+          ? _value.firmwareOhtMode
+          : firmwareOhtMode // ignore: cast_nullable_to_non_nullable
+              as String,
+      firmwareUgtMode: null == firmwareUgtMode
+          ? _value.firmwareUgtMode
+          : firmwareUgtMode // ignore: cast_nullable_to_non_nullable
               as String,
       isSystemSuspended: null == isSystemSuspended
           ? _value.isSystemSuspended
@@ -149,7 +157,8 @@ abstract class _$$TelemetryDataImplCopyWith<$Res>
       String ugtMotorState,
       double powerWatts,
       double energyKwh,
-      String firmwareMode,
+      String firmwareOhtMode,
+      String firmwareUgtMode,
       bool isSystemSuspended,
       DateTime timestamp});
 }
@@ -172,7 +181,8 @@ class __$$TelemetryDataImplCopyWithImpl<$Res>
     Object? ugtMotorState = null,
     Object? powerWatts = null,
     Object? energyKwh = null,
-    Object? firmwareMode = null,
+    Object? firmwareOhtMode = null,
+    Object? firmwareUgtMode = null,
     Object? isSystemSuspended = null,
     Object? timestamp = null,
   }) {
@@ -205,9 +215,13 @@ class __$$TelemetryDataImplCopyWithImpl<$Res>
           ? _value.energyKwh
           : energyKwh // ignore: cast_nullable_to_non_nullable
               as double,
-      firmwareMode: null == firmwareMode
-          ? _value.firmwareMode
-          : firmwareMode // ignore: cast_nullable_to_non_nullable
+      firmwareOhtMode: null == firmwareOhtMode
+          ? _value.firmwareOhtMode
+          : firmwareOhtMode // ignore: cast_nullable_to_non_nullable
+              as String,
+      firmwareUgtMode: null == firmwareUgtMode
+          ? _value.firmwareUgtMode
+          : firmwareUgtMode // ignore: cast_nullable_to_non_nullable
               as String,
       isSystemSuspended: null == isSystemSuspended
           ? _value.isSystemSuspended
@@ -232,7 +246,8 @@ class _$TelemetryDataImpl implements _TelemetryData {
       required this.ugtMotorState,
       required this.powerWatts,
       required this.energyKwh,
-      required this.firmwareMode,
+      required this.firmwareOhtMode,
+      required this.firmwareUgtMode,
       required this.isSystemSuspended,
       required this.timestamp});
 
@@ -263,7 +278,10 @@ class _$TelemetryDataImpl implements _TelemetryData {
 // Session energy kWh
 // Firmware reported
   @override
-  final String firmwareMode;
+  final String firmwareOhtMode;
+// 'AUTO' | 'MANUAL'
+  @override
+  final String firmwareUgtMode;
 // 'AUTO' | 'MANUAL'
   @override
   final bool isSystemSuspended;
@@ -273,7 +291,7 @@ class _$TelemetryDataImpl implements _TelemetryData {
 
   @override
   String toString() {
-    return 'TelemetryData(deviceId: $deviceId, ohtLevel: $ohtLevel, ugtLevel: $ugtLevel, ohtMotorState: $ohtMotorState, ugtMotorState: $ugtMotorState, powerWatts: $powerWatts, energyKwh: $energyKwh, firmwareMode: $firmwareMode, isSystemSuspended: $isSystemSuspended, timestamp: $timestamp)';
+    return 'TelemetryData(deviceId: $deviceId, ohtLevel: $ohtLevel, ugtLevel: $ugtLevel, ohtMotorState: $ohtMotorState, ugtMotorState: $ugtMotorState, powerWatts: $powerWatts, energyKwh: $energyKwh, firmwareOhtMode: $firmwareOhtMode, firmwareUgtMode: $firmwareUgtMode, isSystemSuspended: $isSystemSuspended, timestamp: $timestamp)';
   }
 
   @override
@@ -295,8 +313,10 @@ class _$TelemetryDataImpl implements _TelemetryData {
                 other.powerWatts == powerWatts) &&
             (identical(other.energyKwh, energyKwh) ||
                 other.energyKwh == energyKwh) &&
-            (identical(other.firmwareMode, firmwareMode) ||
-                other.firmwareMode == firmwareMode) &&
+            (identical(other.firmwareOhtMode, firmwareOhtMode) ||
+                other.firmwareOhtMode == firmwareOhtMode) &&
+            (identical(other.firmwareUgtMode, firmwareUgtMode) ||
+                other.firmwareUgtMode == firmwareUgtMode) &&
             (identical(other.isSystemSuspended, isSystemSuspended) ||
                 other.isSystemSuspended == isSystemSuspended) &&
             (identical(other.timestamp, timestamp) ||
@@ -314,7 +334,8 @@ class _$TelemetryDataImpl implements _TelemetryData {
       ugtMotorState,
       powerWatts,
       energyKwh,
-      firmwareMode,
+      firmwareOhtMode,
+      firmwareUgtMode,
       isSystemSuspended,
       timestamp);
 
@@ -341,7 +362,8 @@ abstract class _TelemetryData implements TelemetryData {
       required final String ugtMotorState,
       required final double powerWatts,
       required final double energyKwh,
-      required final String firmwareMode,
+      required final String firmwareOhtMode,
+      required final String firmwareUgtMode,
       required final bool isSystemSuspended,
       required final DateTime timestamp}) = _$TelemetryDataImpl;
 
@@ -365,7 +387,9 @@ abstract class _TelemetryData implements TelemetryData {
   double get energyKwh;
   @override // Session energy kWh
 // Firmware reported
-  String get firmwareMode;
+  String get firmwareOhtMode;
+  @override // 'AUTO' | 'MANUAL'
+  String get firmwareUgtMode;
   @override // 'AUTO' | 'MANUAL'
   bool get isSystemSuspended;
   @override // SYS_SUSPENDED flag

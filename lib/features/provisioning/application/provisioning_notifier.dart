@@ -16,7 +16,8 @@ class ProvisioningNotifier extends StateNotifier<ProvisioningState> {
 
   // Extracted from QR payload (kept in memory only, never persisted)
   String? _claimCode;
-  String? _secretKey;
+  String? _macAddress;
+  String? _signature;
 
   StreamSubscription? _scanSub;
 
@@ -24,14 +25,23 @@ class ProvisioningNotifier extends StateNotifier<ProvisioningState> {
       : super(const ProvisioningState.idle());
 
   // ── Step 1: QR Code scanned ───────────────────────────────────────────────
-  /// QR payload expected format: "CLAIM:{claimCode}:SECRET:{secretKey}"
+  /// QR payload expected format: "yourapp://claim?data=v1:{macAddress}:{claimCode}:{signature}"
   void onQrCodeScanned(String rawValue) {
     try {
-      final parts = rawValue.split(':');
-      // Format: CLAIM:{code}:SECRET:{key}
-      if (parts.length >= 4 && parts[0] == 'CLAIM' && parts[2] == 'SECRET') {
-        _claimCode = parts[1];
-        _secretKey = parts[3];
+      // Extract the 'data' parameter from the deep link URL if present
+      String qrData = rawValue;
+      final uri = Uri.tryParse(rawValue);
+      if (uri != null && uri.queryParameters.containsKey('data')) {
+        qrData = uri.queryParameters['data']!;
+      }
+
+      final parts = qrData.split(':');
+      // Format: v1:{macAddress}:{claimCode}:{signature}
+      // Since macAddress might have colons (e.g. AA:BB:CC...), we should pick from the end.
+      if (parts.length >= 4 && parts[0] == 'v1') {
+        _signature = parts.last;
+        _claimCode = parts[parts.length - 2];
+        _macAddress = parts.sublist(1, parts.length - 2).join(':');
         state = ProvisioningState.qrScanned(claimCode: _claimCode!);
       } else {
         state = const ProvisioningState.error(
@@ -83,10 +93,10 @@ class ProvisioningNotifier extends StateNotifier<ProvisioningState> {
     try {
       await _ble.connect(device);
 
-      // Immediately send secret key over BLE (never via API)
-      if (_secretKey != null) {
-        await _ble.writeSecretKey(_secretKey!);
-        _secretKey = null; // Clear from memory once sent
+      // Immediately send secret key (signature) over BLE
+      if (_signature != null) {
+        await _ble.writeSecretKey(_signature!);
+        // Keeping _signature in memory for the final API claim.
       }
 
       state = ProvisioningState.bleConnected(
@@ -142,12 +152,14 @@ class ProvisioningNotifier extends StateNotifier<ProvisioningState> {
   // ── Step 4: Claim via API ──────────────────────────────────────────────────
   Future<void> _claimDeviceViaApi() async {
     try {
-      final device = await _deviceRepo.claimDevice(_claimCode!);
+      final device = await _deviceRepo.claimDevice(_claimCode!, _macAddress!, _signature!);
       _claimCode = null; // Clear from memory once claimed
+      _macAddress = null;
+      _signature = null;
       await _ble.disconnect(); // Clean BLE teardown
       state = ProvisioningState.complete(
         deviceId: device.id,
-        deviceName: device.name,
+        deviceName: device.displayName,
       );
     } catch (e) {
       state = const ProvisioningState.error(
@@ -160,7 +172,8 @@ class ProvisioningNotifier extends StateNotifier<ProvisioningState> {
   // ── Reset wizard ──────────────────────────────────────────────────────────
   void reset() {
     _claimCode = null;
-    _secretKey = null;
+    _macAddress = null;
+    _signature = null;
     _scanSub?.cancel();
     _ble.disconnect();
     state = const ProvisioningState.idle();

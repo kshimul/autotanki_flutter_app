@@ -27,43 +27,48 @@ const TelemetryCacheSchema = CollectionSchema(
       name: r'energyKwh',
       type: IsarType.double,
     ),
-    r'firmwareMode': PropertySchema(
+    r'firmwareOhtMode': PropertySchema(
       id: 2,
-      name: r'firmwareMode',
+      name: r'firmwareOhtMode',
+      type: IsarType.string,
+    ),
+    r'firmwareUgtMode': PropertySchema(
+      id: 3,
+      name: r'firmwareUgtMode',
       type: IsarType.string,
     ),
     r'isSystemSuspended': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'isSystemSuspended',
       type: IsarType.bool,
     ),
     r'ohtLevel': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'ohtLevel',
       type: IsarType.double,
     ),
     r'ohtMotorState': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'ohtMotorState',
       type: IsarType.string,
     ),
     r'powerWatts': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'powerWatts',
       type: IsarType.double,
     ),
     r'timestamp': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'timestamp',
       type: IsarType.dateTime,
     ),
     r'ugtLevel': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'ugtLevel',
       type: IsarType.double,
     ),
     r'ugtMotorState': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'ugtMotorState',
       type: IsarType.string,
     )
@@ -116,7 +121,8 @@ int _telemetryCacheEstimateSize(
 ) {
   var bytesCount = offsets.last;
   bytesCount += 3 + object.deviceId.length * 3;
-  bytesCount += 3 + object.firmwareMode.length * 3;
+  bytesCount += 3 + object.firmwareOhtMode.length * 3;
+  bytesCount += 3 + object.firmwareUgtMode.length * 3;
   bytesCount += 3 + object.ohtMotorState.length * 3;
   bytesCount += 3 + object.ugtMotorState.length * 3;
   return bytesCount;
@@ -130,14 +136,15 @@ void _telemetryCacheSerialize(
 ) {
   writer.writeString(offsets[0], object.deviceId);
   writer.writeDouble(offsets[1], object.energyKwh);
-  writer.writeString(offsets[2], object.firmwareMode);
-  writer.writeBool(offsets[3], object.isSystemSuspended);
-  writer.writeDouble(offsets[4], object.ohtLevel);
-  writer.writeString(offsets[5], object.ohtMotorState);
-  writer.writeDouble(offsets[6], object.powerWatts);
-  writer.writeDateTime(offsets[7], object.timestamp);
-  writer.writeDouble(offsets[8], object.ugtLevel);
-  writer.writeString(offsets[9], object.ugtMotorState);
+  writer.writeString(offsets[2], object.firmwareOhtMode);
+  writer.writeString(offsets[3], object.firmwareUgtMode);
+  writer.writeBool(offsets[4], object.isSystemSuspended);
+  writer.writeDouble(offsets[5], object.ohtLevel);
+  writer.writeString(offsets[6], object.ohtMotorState);
+  writer.writeDouble(offsets[7], object.powerWatts);
+  writer.writeDateTime(offsets[8], object.timestamp);
+  writer.writeDouble(offsets[9], object.ugtLevel);
+  writer.writeString(offsets[10], object.ugtMotorState);
 }
 
 TelemetryCache _telemetryCacheDeserialize(
@@ -149,15 +156,16 @@ TelemetryCache _telemetryCacheDeserialize(
   final object = TelemetryCache();
   object.deviceId = reader.readString(offsets[0]);
   object.energyKwh = reader.readDouble(offsets[1]);
-  object.firmwareMode = reader.readString(offsets[2]);
+  object.firmwareOhtMode = reader.readString(offsets[2]);
+  object.firmwareUgtMode = reader.readString(offsets[3]);
   object.id = id;
-  object.isSystemSuspended = reader.readBool(offsets[3]);
-  object.ohtLevel = reader.readDouble(offsets[4]);
-  object.ohtMotorState = reader.readString(offsets[5]);
-  object.powerWatts = reader.readDouble(offsets[6]);
-  object.timestamp = reader.readDateTime(offsets[7]);
-  object.ugtLevel = reader.readDouble(offsets[8]);
-  object.ugtMotorState = reader.readString(offsets[9]);
+  object.isSystemSuspended = reader.readBool(offsets[4]);
+  object.ohtLevel = reader.readDouble(offsets[5]);
+  object.ohtMotorState = reader.readString(offsets[6]);
+  object.powerWatts = reader.readDouble(offsets[7]);
+  object.timestamp = reader.readDateTime(offsets[8]);
+  object.ugtLevel = reader.readDouble(offsets[9]);
+  object.ugtMotorState = reader.readString(offsets[10]);
   return object;
 }
 
@@ -175,18 +183,20 @@ P _telemetryCacheDeserializeProp<P>(
     case 2:
       return (reader.readString(offset)) as P;
     case 3:
-      return (reader.readBool(offset)) as P;
-    case 4:
-      return (reader.readDouble(offset)) as P;
-    case 5:
       return (reader.readString(offset)) as P;
+    case 4:
+      return (reader.readBool(offset)) as P;
+    case 5:
+      return (reader.readDouble(offset)) as P;
     case 6:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 7:
-      return (reader.readDateTime(offset)) as P;
-    case 8:
       return (reader.readDouble(offset)) as P;
+    case 8:
+      return (reader.readDateTime(offset)) as P;
     case 9:
+      return (reader.readDouble(offset)) as P;
+    case 10:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -638,13 +648,13 @@ extension TelemetryCacheQueryFilter
   }
 
   QueryBuilder<TelemetryCache, TelemetryCache, QAfterFilterCondition>
-      firmwareModeEqualTo(
+      firmwareOhtModeEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'firmwareMode',
+        property: r'firmwareOhtMode',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -652,7 +662,7 @@ extension TelemetryCacheQueryFilter
   }
 
   QueryBuilder<TelemetryCache, TelemetryCache, QAfterFilterCondition>
-      firmwareModeGreaterThan(
+      firmwareOhtModeGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -660,7 +670,7 @@ extension TelemetryCacheQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'firmwareMode',
+        property: r'firmwareOhtMode',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -668,7 +678,7 @@ extension TelemetryCacheQueryFilter
   }
 
   QueryBuilder<TelemetryCache, TelemetryCache, QAfterFilterCondition>
-      firmwareModeLessThan(
+      firmwareOhtModeLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -676,7 +686,7 @@ extension TelemetryCacheQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'firmwareMode',
+        property: r'firmwareOhtMode',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -684,7 +694,7 @@ extension TelemetryCacheQueryFilter
   }
 
   QueryBuilder<TelemetryCache, TelemetryCache, QAfterFilterCondition>
-      firmwareModeBetween(
+      firmwareOhtModeBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -693,7 +703,7 @@ extension TelemetryCacheQueryFilter
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'firmwareMode',
+        property: r'firmwareOhtMode',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -704,13 +714,13 @@ extension TelemetryCacheQueryFilter
   }
 
   QueryBuilder<TelemetryCache, TelemetryCache, QAfterFilterCondition>
-      firmwareModeStartsWith(
+      firmwareOhtModeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'firmwareMode',
+        property: r'firmwareOhtMode',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -718,13 +728,13 @@ extension TelemetryCacheQueryFilter
   }
 
   QueryBuilder<TelemetryCache, TelemetryCache, QAfterFilterCondition>
-      firmwareModeEndsWith(
+      firmwareOhtModeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'firmwareMode',
+        property: r'firmwareOhtMode',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -732,10 +742,10 @@ extension TelemetryCacheQueryFilter
   }
 
   QueryBuilder<TelemetryCache, TelemetryCache, QAfterFilterCondition>
-      firmwareModeContains(String value, {bool caseSensitive = true}) {
+      firmwareOhtModeContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
-        property: r'firmwareMode',
+        property: r'firmwareOhtMode',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -743,10 +753,10 @@ extension TelemetryCacheQueryFilter
   }
 
   QueryBuilder<TelemetryCache, TelemetryCache, QAfterFilterCondition>
-      firmwareModeMatches(String pattern, {bool caseSensitive = true}) {
+      firmwareOhtModeMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
-        property: r'firmwareMode',
+        property: r'firmwareOhtMode',
         wildcard: pattern,
         caseSensitive: caseSensitive,
       ));
@@ -754,20 +764,156 @@ extension TelemetryCacheQueryFilter
   }
 
   QueryBuilder<TelemetryCache, TelemetryCache, QAfterFilterCondition>
-      firmwareModeIsEmpty() {
+      firmwareOhtModeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'firmwareMode',
+        property: r'firmwareOhtMode',
         value: '',
       ));
     });
   }
 
   QueryBuilder<TelemetryCache, TelemetryCache, QAfterFilterCondition>
-      firmwareModeIsNotEmpty() {
+      firmwareOhtModeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'firmwareMode',
+        property: r'firmwareOhtMode',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TelemetryCache, TelemetryCache, QAfterFilterCondition>
+      firmwareUgtModeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'firmwareUgtMode',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TelemetryCache, TelemetryCache, QAfterFilterCondition>
+      firmwareUgtModeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'firmwareUgtMode',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TelemetryCache, TelemetryCache, QAfterFilterCondition>
+      firmwareUgtModeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'firmwareUgtMode',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TelemetryCache, TelemetryCache, QAfterFilterCondition>
+      firmwareUgtModeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'firmwareUgtMode',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TelemetryCache, TelemetryCache, QAfterFilterCondition>
+      firmwareUgtModeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'firmwareUgtMode',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TelemetryCache, TelemetryCache, QAfterFilterCondition>
+      firmwareUgtModeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'firmwareUgtMode',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TelemetryCache, TelemetryCache, QAfterFilterCondition>
+      firmwareUgtModeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'firmwareUgtMode',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TelemetryCache, TelemetryCache, QAfterFilterCondition>
+      firmwareUgtModeMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'firmwareUgtMode',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TelemetryCache, TelemetryCache, QAfterFilterCondition>
+      firmwareUgtModeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'firmwareUgtMode',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TelemetryCache, TelemetryCache, QAfterFilterCondition>
+      firmwareUgtModeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'firmwareUgtMode',
         value: '',
       ));
     });
@@ -1400,16 +1546,30 @@ extension TelemetryCacheQuerySortBy
   }
 
   QueryBuilder<TelemetryCache, TelemetryCache, QAfterSortBy>
-      sortByFirmwareMode() {
+      sortByFirmwareOhtMode() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'firmwareMode', Sort.asc);
+      return query.addSortBy(r'firmwareOhtMode', Sort.asc);
     });
   }
 
   QueryBuilder<TelemetryCache, TelemetryCache, QAfterSortBy>
-      sortByFirmwareModeDesc() {
+      sortByFirmwareOhtModeDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'firmwareMode', Sort.desc);
+      return query.addSortBy(r'firmwareOhtMode', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TelemetryCache, TelemetryCache, QAfterSortBy>
+      sortByFirmwareUgtMode() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'firmwareUgtMode', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TelemetryCache, TelemetryCache, QAfterSortBy>
+      sortByFirmwareUgtModeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'firmwareUgtMode', Sort.desc);
     });
   }
 
@@ -1538,16 +1698,30 @@ extension TelemetryCacheQuerySortThenBy
   }
 
   QueryBuilder<TelemetryCache, TelemetryCache, QAfterSortBy>
-      thenByFirmwareMode() {
+      thenByFirmwareOhtMode() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'firmwareMode', Sort.asc);
+      return query.addSortBy(r'firmwareOhtMode', Sort.asc);
     });
   }
 
   QueryBuilder<TelemetryCache, TelemetryCache, QAfterSortBy>
-      thenByFirmwareModeDesc() {
+      thenByFirmwareOhtModeDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'firmwareMode', Sort.desc);
+      return query.addSortBy(r'firmwareOhtMode', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TelemetryCache, TelemetryCache, QAfterSortBy>
+      thenByFirmwareUgtMode() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'firmwareUgtMode', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TelemetryCache, TelemetryCache, QAfterSortBy>
+      thenByFirmwareUgtModeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'firmwareUgtMode', Sort.desc);
     });
   }
 
@@ -1676,9 +1850,18 @@ extension TelemetryCacheQueryWhereDistinct
   }
 
   QueryBuilder<TelemetryCache, TelemetryCache, QDistinct>
-      distinctByFirmwareMode({bool caseSensitive = true}) {
+      distinctByFirmwareOhtMode({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'firmwareMode', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'firmwareOhtMode',
+          caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<TelemetryCache, TelemetryCache, QDistinct>
+      distinctByFirmwareUgtMode({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'firmwareUgtMode',
+          caseSensitive: caseSensitive);
     });
   }
 
@@ -1753,9 +1936,16 @@ extension TelemetryCacheQueryProperty
   }
 
   QueryBuilder<TelemetryCache, String, QQueryOperations>
-      firmwareModeProperty() {
+      firmwareOhtModeProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'firmwareMode');
+      return query.addPropertyName(r'firmwareOhtMode');
+    });
+  }
+
+  QueryBuilder<TelemetryCache, String, QQueryOperations>
+      firmwareUgtModeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'firmwareUgtMode');
     });
   }
 

@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'shared/models/telemetry_cache.dart';
+import 'shared/models/device_cache.dart';
 import 'features/dashboard/data/telemetry_cache_repository.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -48,7 +49,7 @@ Future<void> main() async {
   try {
     final dir = await getApplicationDocumentsDirectory();
     isar = await Isar.open(
-      [TelemetryCacheSchema],
+      [TelemetryCacheSchema, DeviceCacheSchema],
       directory: dir.path,
       name: 'smarttank_cache',
     );

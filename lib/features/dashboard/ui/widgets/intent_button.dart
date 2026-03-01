@@ -17,6 +17,7 @@ class IntentButton extends ConsumerWidget {
   final String motorId; // 'oht' | 'ugt'
   final bool initialIsRunning;
   final String label;
+  final bool disabled;
 
   const IntentButton({
     super.key,
@@ -24,6 +25,7 @@ class IntentButton extends ConsumerWidget {
     required this.motorId,
     required this.initialIsRunning,
     required this.label,
+    this.disabled = false,
   });
 
   @override
@@ -39,7 +41,20 @@ class IntentButton extends ConsumerWidget {
       idle: (_, isRunning) => _IdleButton(
         label: label,
         isRunning: isRunning,
-        onTap: () => ref.read(motorIntentProvider(args).notifier).toggle(),
+        disabled: disabled,
+        onTap: () {
+          if (disabled) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Cannot manually control ${motorId.toUpperCase()} while in AUTO mode.'),
+                backgroundColor: AppColors.warning,
+                duration: const Duration(seconds: 2),
+              ),
+            );
+            return;
+          }
+          ref.read(motorIntentProvider(args).notifier).toggle();
+        },
       ),
       pending: (_, isRunning, pendingAction) => _PendingButton(
         label: label,
@@ -65,17 +80,19 @@ class IntentButton extends ConsumerWidget {
 class _IdleButton extends StatelessWidget {
   final String label;
   final bool isRunning;
+  final bool disabled;
   final VoidCallback onTap;
 
   const _IdleButton({
     required this.label,
     required this.isRunning,
+    this.disabled = false,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final color = isRunning ? AppColors.success : AppColors.textTertiary;
+    final color = disabled ? AppColors.textTertiary : (isRunning ? AppColors.success : AppColors.textTertiary);
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -84,12 +101,14 @@ class _IdleButton extends StatelessWidget {
           color: AppColors.surfaceCard,
           borderRadius: BorderRadius.circular(AppRadius.lg),
           border: Border.all(
-            color: isRunning
-                ? AppColors.success.withOpacity(0.5)
-                : AppColors.surfaceHighlight,
+            color: disabled
+                ? AppColors.surfaceHighlight.withOpacity(0.5)
+                : (isRunning
+                    ? AppColors.success.withOpacity(0.5)
+                    : AppColors.surfaceHighlight),
             width: 1.5,
           ),
-          boxShadow: isRunning ? [AppShadows.card] : null,
+          boxShadow: (isRunning && !disabled) ? [AppShadows.card] : null,
         ),
         padding: const EdgeInsets.symmetric(
           horizontal: Spacing.lg,
@@ -136,9 +155,11 @@ class _IdleButton extends StatelessWidget {
               height: 24,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(AppRadius.full),
-                color: isRunning
-                    ? AppColors.success.withOpacity(0.2)
-                    : AppColors.surfaceDark,
+                color: disabled
+                    ? AppColors.surfaceDark.withOpacity(0.5)
+                    : (isRunning
+                        ? AppColors.success.withOpacity(0.2)
+                        : AppColors.surfaceDark),
                 border: Border.all(color: color.withOpacity(0.5)),
               ),
               child: AnimatedAlign(

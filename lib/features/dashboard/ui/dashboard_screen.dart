@@ -4,8 +4,11 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/design_tokens.dart';
 import '../../../core/theme/app_decorations.dart';
 import '../../../shared/widgets/grid_background.dart';
+import '../../../shared/models/device_model.dart';
 import '../../../shared/models/telemetry_model.dart';
+import '../data/dashboard_repository.dart';
 import '../application/dashboard_providers.dart';
+import '../../../shared/widgets/rename_device_dialog.dart';
 import 'widgets/interactive_tank.dart';
 import 'widgets/intent_button.dart';
 import 'widgets/connection_badge.dart';
@@ -17,24 +20,39 @@ import 'widgets/connection_badge.dart';
 //   2. MQTT connects: seamlessly switch to live stream
 // ─────────────────────────────────────────────────────────────────────────────
 
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Use post-frame callback so ref is available from the widget tree
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(deviceSelectorProvider.notifier).loadDevices();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final device = ref.watch(deviceSelectorProvider);
 
     if (device == null) {
-      return _NoDeviceScreen();
+      return _NoDeviceScreen(onRetry: () {
+        ref.invalidate(deviceListProvider);
+        ref.read(deviceSelectorProvider.notifier).loadDevices();
+      });
     }
 
-    // Cache: show immediately on cold start
-    final cachedAsync  = ref.watch(cachedTelemetryProvider(device.id));
     // Live: takes over when MQTT connects (null until stream emits)
-    final liveAsync    = ref.watch(telemetryStreamProvider(device.id));
+    final liveAsync    = ref.watch(telemetryStreamProvider(device));
 
-    // Prefer live data; fall back to cache; show skeleton if both loading
-    final telemetry = liveAsync.valueOrNull ?? cachedAsync.valueOrNull;
+    // Prefer live MQTT data; fall back to Device summary (which includes fresh API or Isar cache)
+    final telemetry = liveAsync.valueOrNull ?? _createFallbackTelemetry(device);
 
     return Scaffold(
       backgroundColor: AppColors.bgDark,
@@ -44,7 +62,7 @@ class DashboardScreen extends ConsumerWidget {
             children: [
               // ── App Bar ────────────────────────────────────────────────
               _DashboardAppBar(
-                deviceName: device.name,
+                device: device,
                 onDeviceTap: () => _showDevicePicker(context, ref),
               ),
 
@@ -52,17 +70,51 @@ class DashboardScreen extends ConsumerWidget {
 
               // ── Content ────────────────────────────────────────────────
               Expanded(
-                child: telemetry == null
-                    ? _DashboardSkeleton()
-                    : _DashboardContent(
-                        deviceId: device.id,
-                        data: telemetry,
-                      ),
+                child: RefreshIndicator(
+                  color: AppColors.primary,
+                  backgroundColor: AppColors.surfaceCard,
+                  onRefresh: () async {
+                    ref.invalidate(deviceListProvider);
+                    await ref.read(deviceSelectorProvider.notifier).refreshDevices();
+                  },
+                  child: telemetry == null
+                      ? SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: _DashboardSkeleton(),
+                        )
+                      : _DashboardContent(
+                          deviceId: device.id,
+                          data: telemetry,
+                        ),
+                ),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  TelemetryData? _createFallbackTelemetry(Device device) {
+    // Backend getUserDevices returns nested objects for oht and ugt
+    // Let's safely extract water levels and mode from them if top-level fields are missing
+    final double ohtLevel = device.ohtWaterLevel ?? (device.oht?['waterLevel'] as num?)?.toDouble() ?? 0.0;
+    final double ugtLevel = device.ugtWaterLevel ?? (device.ugt?['waterLevel'] as num?)?.toDouble() ?? 0.0;
+    
+    return TelemetryData(
+      deviceId: device.id,
+      ohtLevel: ohtLevel,
+      ugtLevel: ugtLevel,
+      ohtMotorState: device.ohtState ?? (device.oht?['state'] as String?) ?? 'OFF',
+      ugtMotorState: (device.ugt?['state'] as String?) ?? 'OFF',
+      powerWatts: 0.0,
+      energyKwh: 0.0,
+      firmwareOhtMode: device.ohtMode ?? (device.oht?['mode'] as String?) ?? 'AUTO',
+      firmwareUgtMode: (device.ugt?['mode'] as String?) ?? 'AUTO',
+      isSystemSuspended: device.suspended ?? false,
+      timestamp: device.lastSeenAt != null
+          ? DateTime.tryParse(device.lastSeenAt!) ?? DateTime.now()
+          : DateTime.now(),
     );
   }
 
@@ -82,17 +134,17 @@ class DashboardScreen extends ConsumerWidget {
 
 // ─── App Bar ──────────────────────────────────────────────────────────────────
 
-class _DashboardAppBar extends StatelessWidget {
-  final String deviceName;
+class _DashboardAppBar extends ConsumerWidget {
+  final Device device;
   final VoidCallback onDeviceTap;
 
   const _DashboardAppBar({
-    required this.deviceName,
+    required this.device,
     required this.onDeviceTap,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.symmetric(
           horizontal: Spacing.lg, vertical: Spacing.sm),
@@ -115,16 +167,40 @@ class _DashboardAppBar extends StatelessWidget {
                         color: AppColors.primary, size: 18),
                   ),
                   const SizedBox(width: Spacing.sm),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        deviceName,
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
-                        ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                device.displayName,
+                                style: const TextStyle(
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 15,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: Spacing.xs),
+                          GestureDetector(
+                            onTap: () async {
+                              final newName = await RenameDeviceDialog.show(
+                                context,
+                                initialName: device.displayName,
+                              );
+                              if (newName != null && newName.isNotEmpty && newName != device.displayName) {
+                                await ref.read(deviceSelectorProvider.notifier)
+                                    .updateDeviceNickname(newName);
+                              }
+                            },
+                            child: const Icon(Icons.edit_outlined,
+                                color: AppColors.textTertiary, size: 14),
+                          ),
+                        ],
                       ),
                       Row(
                         children: [
@@ -137,7 +213,8 @@ class _DashboardAppBar extends StatelessWidget {
                               color: AppColors.textTertiary, size: 12),
                         ],
                       ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -174,6 +251,7 @@ class _DashboardContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -182,27 +260,52 @@ class _DashboardContent extends StatelessWidget {
           Container(
             decoration: AppDecorations.surfaceCard(),
             padding: const EdgeInsets.symmetric(
-                horizontal: Spacing.lg, vertical: Spacing.lg),
+                horizontal: Spacing.sm, vertical: Spacing.lg),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                InteractiveTank(
-                  tankId: 'oht',
-                  label: 'Overhead Tank',
-                  level: data.ohtLevel,
-                  isMotorOn: data.ohtMotorState == 'ON',
+                Expanded(
+                  child: Column(
+                    children: [
+                      InteractiveTank(
+                        tankId: 'oht',
+                        label: 'Overhead Tank',
+                        level: data.ohtLevel,
+                        isMotorOn: data.ohtMotorState == 'ON',
+                      ),
+                      const SizedBox(height: Spacing.md),
+                      _ModeToggleSwitch(
+                        deviceId: deviceId,
+                        motorId: 'oht',
+                        currentMode: data.firmwareOhtMode,
+                      ),
+                    ],
+                  ),
                 ),
                 // Divider
                 Container(
                   width: 1,
-                  height: 160,
+                  height: 200,
                   color: AppColors.surfaceHighlight,
                 ),
-                InteractiveTank(
-                  tankId: 'ugt',
-                  label: 'Underground Tank',
-                  level: data.ugtLevel,
-                  isMotorOn: data.ugtMotorState == 'ON',
+                Expanded(
+                  child: Column(
+                    children: [
+                      InteractiveTank(
+                        tankId: 'ugt',
+                        label: 'Underground Tank',
+                        level: data.ugtLevel,
+                        isMotorOn: data.ugtMotorState == 'ON',
+                      ),
+                      const SizedBox(height: Spacing.md),
+                      _ModeToggleSwitch(
+                        deviceId: deviceId,
+                        motorId: 'ugt',
+                        currentMode: data.firmwareUgtMode,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -220,6 +323,7 @@ class _DashboardContent extends StatelessWidget {
             motorId: 'oht',
             initialIsRunning: data.ohtMotorState == 'ON',
             label: 'OHT Motor',
+            disabled: data.firmwareOhtMode == 'AUTO',
           ),
           const SizedBox(height: Spacing.sm),
           IntentButton(
@@ -227,6 +331,7 @@ class _DashboardContent extends StatelessWidget {
             motorId: 'ugt',
             initialIsRunning: data.ugtMotorState == 'ON',
             label: 'UGT Motor',
+            disabled: data.firmwareUgtMode == 'AUTO',
           ),
           const SizedBox(height: Spacing.md),
 
@@ -271,26 +376,22 @@ class _DashboardContent extends StatelessWidget {
 
 // ─── System Info Card ─────────────────────────────────────────────────────────
 
-class _SystemInfoCard extends StatelessWidget {
+class _SystemInfoCard extends ConsumerWidget {
   final TelemetryData data;
   const _SystemInfoCard({required this.data});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       decoration: AppDecorations.surfaceCard(),
       padding: const EdgeInsets.all(Spacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('System', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: Spacing.sm),
+          Text('System Info', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: Spacing.md),
           Row(
             children: [
-              _InfoTile(
-                  label: 'Mode',
-                  value: data.firmwareMode,
-                  icon: Icons.memory_outlined),
               _InfoTile(
                   label: 'Power',
                   value: '${data.powerWatts.toStringAsFixed(1)}W',
@@ -318,6 +419,165 @@ class _SystemInfoCard extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _ModeToggleSwitch extends ConsumerStatefulWidget {
+  final String deviceId;
+  final String motorId;
+  final String currentMode; // 'AUTO' | 'MANUAL'
+
+  const _ModeToggleSwitch({
+    required this.deviceId,
+    required this.motorId,
+    required this.currentMode,
+  });
+
+  @override
+  ConsumerState<_ModeToggleSwitch> createState() => _ModeToggleSwitchState();
+}
+
+class _ModeToggleSwitchState extends ConsumerState<_ModeToggleSwitch> {
+  String? _optimisticMode;
+  bool _isLoading = false;
+
+  @override
+  void didUpdateWidget(covariant _ModeToggleSwitch oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentMode != widget.currentMode) {
+      // External state updated, clear our optimistic prediction
+      _optimisticMode = null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final effectiveMode = _optimisticMode ?? widget.currentMode;
+    final isAuto = effectiveMode == 'AUTO';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.bgDark,
+        borderRadius: BorderRadius.circular(AppRadius.full),
+        border: Border.all(color: AppColors.surfaceHighlight),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _ModeItem(
+            label: 'AUTO',
+            isActive: isAuto,
+            isLoading: _isLoading && _optimisticMode == 'AUTO',
+            activeColor: AppColors.primary,
+            onTap: _isLoading ? () {} : () => _setMode('AUTO'),
+          ),
+          _ModeItem(
+            label: 'MANUAL',
+            isActive: !isAuto,
+            isLoading: _isLoading && _optimisticMode == 'MANUAL',
+            activeColor: AppColors.warning,
+            onTap: _isLoading ? () {} : () => _setMode('MANUAL'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _setMode(String mode) async {
+    final previousMode = _optimisticMode ?? widget.currentMode;
+    if (previousMode == mode) return;
+
+    setState(() {
+      _optimisticMode = mode;
+      _isLoading = true;
+    });
+
+    try {
+      final repo = ref.read(dashboardRepositoryProvider);
+      await repo.setMode(deviceId: widget.deviceId, motor: widget.motorId, mode: mode);
+      
+      // Refresh to grab updated summary payload
+      ref.invalidate(deviceListProvider);
+      // await ref.read(deviceSelectorProvider.notifier).refreshDevices();
+      ref.read(deviceSelectorProvider.notifier).refreshDevices();
+      
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _optimisticMode = null; // Revert
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to change ${widget.motorId} mode to $mode'),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      }
+    }
+  }
+}
+
+class _ModeItem extends StatelessWidget {
+  final String label;
+  final bool isActive;
+  final bool isLoading;
+  final Color activeColor;
+  final VoidCallback onTap;
+
+  const _ModeItem({
+    required this.label,
+    required this.isActive,
+    this.isLoading = false,
+    required this.activeColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isActive ? activeColor.withOpacity(0.15) : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppRadius.full),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isLoading) ...[
+              SizedBox(
+                width: 10,
+                height: 10,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: activeColor,
+                ),
+              ),
+              const SizedBox(width: Spacing.xs),
+            ],
+            Flexible(
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: isActive ? activeColor : AppColors.textTertiary,
+                  fontSize: 12,
+                  fontWeight: isActive ? FontWeight.w800 : FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -436,6 +696,9 @@ class _SkeletonBox extends StatelessWidget {
 // ─── No Device Screen ─────────────────────────────────────────────────────────
 
 class _NoDeviceScreen extends StatelessWidget {
+  final VoidCallback? onRetry;
+  const _NoDeviceScreen({this.onRetry});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -456,11 +719,22 @@ class _NoDeviceScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: Spacing.sm),
                 Text(
-                  'Add your SmartTank device to start monitoring your water system.',
+                  'Add your SmartTank device or wait for a device to be assigned.',
                   style: Theme.of(context).textTheme.bodyMedium,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: Spacing.xl),
+                if (onRetry != null)
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retry'),
+                    onPressed: onRetry,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.primary,
+                      side: const BorderSide(color: AppColors.primary),
+                    ),
+                  ),
+                const SizedBox(height: Spacing.sm),
                 Container(
                   decoration: BoxDecoration(
                     boxShadow: [AppShadows.primaryGlow],
@@ -507,7 +781,7 @@ class _DevicePickerSheet extends ConsumerWidget {
                       color: isSelected
                           ? AppColors.primary
                           : AppColors.textTertiary),
-                  title: Text(d.name,
+                  title: Text(d.displayName,
                       style: TextStyle(
                           color: isSelected
                               ? AppColors.primary

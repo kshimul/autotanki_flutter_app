@@ -7,6 +7,7 @@ import '../../../shared/models/device_config_model.dart';
 import '../../../shared/models/support_model.dart';
 import '../../../features/auth/application/auth_notifier.dart';
 import '../../../features/dashboard/application/dashboard_providers.dart';
+import '../../../shared/widgets/rename_device_dialog.dart';
 import '../data/settings_repository.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -49,7 +50,35 @@ class SettingsScreen extends ConsumerWidget {
 
                 // ── Device ───────────────────────────────────────────────
                 if (device != null) ...[
-                  _SectionHeader(title: 'Device: ${device.name}'),
+                  _SectionHeader(title: 'Device: ${device.macAddress ?? 'Unknown'}'),
+                  _SettingsTile(
+                    icon: Icons.edit_outlined,
+                    label: 'Device Name',
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(device.displayName,
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(width: Spacing.xs),
+                        const Icon(Icons.edit,
+                          color: AppColors.textTertiary, size: 14),
+                      ],
+                    ),
+                    onTap: () async {
+                      final newName = await RenameDeviceDialog.show(
+                        context,
+                        initialName: device.displayName,
+                      );
+                      if (newName != null && newName.isNotEmpty && newName != device.displayName) {
+                        await ref.read(deviceSelectorProvider.notifier)
+                            .updateDeviceNickname(newName);
+                      }
+                    },
+                  ),
                   _SettingsTile(
                     icon: Icons.water_drop_outlined,
                     label: 'Tank Configuration',

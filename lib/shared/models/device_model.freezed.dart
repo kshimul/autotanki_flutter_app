@@ -21,19 +21,28 @@ Device _$DeviceFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$Device {
   String get id => throw _privateConstructorUsedError;
-  String get name => throw _privateConstructorUsedError;
-  String get claimCode => throw _privateConstructorUsedError;
-  String? get macAddress =>
-      throw _privateConstructorUsedError; // API-verified fields from Swagger (were missing in v3.0)
-  String? get tankTypeId =>
-      throw _privateConstructorUsedError; // UUID linking to predefined tank type
+  String? get nickname => throw _privateConstructorUsedError;
+  String? get claimCode => throw _privateConstructorUsedError;
+  String? get macAddress => throw _privateConstructorUsedError;
+  String? get tankTypeId => throw _privateConstructorUsedError;
   bool get isLabelPrinted => throw _privateConstructorUsedError;
-  String get ownerId => throw _privateConstructorUsedError;
-  String get status =>
-      throw _privateConstructorUsedError; // 'ONLINE' | 'OFFLINE' | 'SUSPENDED'
-  DateTime? get lastSeenAt => throw _privateConstructorUsedError;
-  DateTime get createdAt => throw _privateConstructorUsedError;
-  DateTime get updatedAt => throw _privateConstructorUsedError;
+  String? get ownerId => throw _privateConstructorUsedError;
+  String? get status => throw _privateConstructorUsedError;
+  String? get lastSeenAt => throw _privateConstructorUsedError;
+  String? get createdAt => throw _privateConstructorUsedError;
+  String? get updatedAt => throw _privateConstructorUsedError;
+  bool? get suspended => throw _privateConstructorUsedError;
+  bool? get isOnline => throw _privateConstructorUsedError;
+  int? get wifiSignal => throw _privateConstructorUsedError;
+  double? get ohtWaterLevel => throw _privateConstructorUsedError;
+  double? get ugtWaterLevel => throw _privateConstructorUsedError;
+  bool? get ohtEnabled => throw _privateConstructorUsedError;
+  String? get ohtMode => throw _privateConstructorUsedError;
+  String? get ohtState => throw _privateConstructorUsedError;
+  bool? get ugtEnabled => throw _privateConstructorUsedError;
+  Map<String, dynamic>? get oht => throw _privateConstructorUsedError;
+  Map<String, dynamic>? get ugt => throw _privateConstructorUsedError;
+  Map<String, dynamic>? get subscription => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -47,16 +56,28 @@ abstract class $DeviceCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
-      String name,
-      String claimCode,
+      String? nickname,
+      String? claimCode,
       String? macAddress,
       String? tankTypeId,
       bool isLabelPrinted,
-      String ownerId,
-      String status,
-      DateTime? lastSeenAt,
-      DateTime createdAt,
-      DateTime updatedAt});
+      String? ownerId,
+      String? status,
+      String? lastSeenAt,
+      String? createdAt,
+      String? updatedAt,
+      bool? suspended,
+      bool? isOnline,
+      int? wifiSignal,
+      double? ohtWaterLevel,
+      double? ugtWaterLevel,
+      bool? ohtEnabled,
+      String? ohtMode,
+      String? ohtState,
+      bool? ugtEnabled,
+      Map<String, dynamic>? oht,
+      Map<String, dynamic>? ugt,
+      Map<String, dynamic>? subscription});
 }
 
 /// @nodoc
@@ -73,30 +94,42 @@ class _$DeviceCopyWithImpl<$Res, $Val extends Device>
   @override
   $Res call({
     Object? id = null,
-    Object? name = null,
-    Object? claimCode = null,
+    Object? nickname = freezed,
+    Object? claimCode = freezed,
     Object? macAddress = freezed,
     Object? tankTypeId = freezed,
     Object? isLabelPrinted = null,
-    Object? ownerId = null,
-    Object? status = null,
+    Object? ownerId = freezed,
+    Object? status = freezed,
     Object? lastSeenAt = freezed,
-    Object? createdAt = null,
-    Object? updatedAt = null,
+    Object? createdAt = freezed,
+    Object? updatedAt = freezed,
+    Object? suspended = freezed,
+    Object? isOnline = freezed,
+    Object? wifiSignal = freezed,
+    Object? ohtWaterLevel = freezed,
+    Object? ugtWaterLevel = freezed,
+    Object? ohtEnabled = freezed,
+    Object? ohtMode = freezed,
+    Object? ohtState = freezed,
+    Object? ugtEnabled = freezed,
+    Object? oht = freezed,
+    Object? ugt = freezed,
+    Object? subscription = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      claimCode: null == claimCode
+      nickname: freezed == nickname
+          ? _value.nickname
+          : nickname // ignore: cast_nullable_to_non_nullable
+              as String?,
+      claimCode: freezed == claimCode
           ? _value.claimCode
           : claimCode // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       macAddress: freezed == macAddress
           ? _value.macAddress
           : macAddress // ignore: cast_nullable_to_non_nullable
@@ -109,26 +142,74 @@ class _$DeviceCopyWithImpl<$Res, $Val extends Device>
           ? _value.isLabelPrinted
           : isLabelPrinted // ignore: cast_nullable_to_non_nullable
               as bool,
-      ownerId: null == ownerId
+      ownerId: freezed == ownerId
           ? _value.ownerId
           : ownerId // ignore: cast_nullable_to_non_nullable
-              as String,
-      status: null == status
+              as String?,
+      status: freezed == status
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       lastSeenAt: freezed == lastSeenAt
           ? _value.lastSeenAt
           : lastSeenAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      createdAt: null == createdAt
+              as String?,
+      createdAt: freezed == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      updatedAt: null == updatedAt
+              as String?,
+      updatedAt: freezed == updatedAt
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
+              as String?,
+      suspended: freezed == suspended
+          ? _value.suspended
+          : suspended // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      isOnline: freezed == isOnline
+          ? _value.isOnline
+          : isOnline // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      wifiSignal: freezed == wifiSignal
+          ? _value.wifiSignal
+          : wifiSignal // ignore: cast_nullable_to_non_nullable
+              as int?,
+      ohtWaterLevel: freezed == ohtWaterLevel
+          ? _value.ohtWaterLevel
+          : ohtWaterLevel // ignore: cast_nullable_to_non_nullable
+              as double?,
+      ugtWaterLevel: freezed == ugtWaterLevel
+          ? _value.ugtWaterLevel
+          : ugtWaterLevel // ignore: cast_nullable_to_non_nullable
+              as double?,
+      ohtEnabled: freezed == ohtEnabled
+          ? _value.ohtEnabled
+          : ohtEnabled // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      ohtMode: freezed == ohtMode
+          ? _value.ohtMode
+          : ohtMode // ignore: cast_nullable_to_non_nullable
+              as String?,
+      ohtState: freezed == ohtState
+          ? _value.ohtState
+          : ohtState // ignore: cast_nullable_to_non_nullable
+              as String?,
+      ugtEnabled: freezed == ugtEnabled
+          ? _value.ugtEnabled
+          : ugtEnabled // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      oht: freezed == oht
+          ? _value.oht
+          : oht // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      ugt: freezed == ugt
+          ? _value.ugt
+          : ugt // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      subscription: freezed == subscription
+          ? _value.subscription
+          : subscription // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
     ) as $Val);
   }
 }
@@ -142,16 +223,28 @@ abstract class _$$DeviceImplCopyWith<$Res> implements $DeviceCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
-      String name,
-      String claimCode,
+      String? nickname,
+      String? claimCode,
       String? macAddress,
       String? tankTypeId,
       bool isLabelPrinted,
-      String ownerId,
-      String status,
-      DateTime? lastSeenAt,
-      DateTime createdAt,
-      DateTime updatedAt});
+      String? ownerId,
+      String? status,
+      String? lastSeenAt,
+      String? createdAt,
+      String? updatedAt,
+      bool? suspended,
+      bool? isOnline,
+      int? wifiSignal,
+      double? ohtWaterLevel,
+      double? ugtWaterLevel,
+      bool? ohtEnabled,
+      String? ohtMode,
+      String? ohtState,
+      bool? ugtEnabled,
+      Map<String, dynamic>? oht,
+      Map<String, dynamic>? ugt,
+      Map<String, dynamic>? subscription});
 }
 
 /// @nodoc
@@ -166,30 +259,42 @@ class __$$DeviceImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
-    Object? name = null,
-    Object? claimCode = null,
+    Object? nickname = freezed,
+    Object? claimCode = freezed,
     Object? macAddress = freezed,
     Object? tankTypeId = freezed,
     Object? isLabelPrinted = null,
-    Object? ownerId = null,
-    Object? status = null,
+    Object? ownerId = freezed,
+    Object? status = freezed,
     Object? lastSeenAt = freezed,
-    Object? createdAt = null,
-    Object? updatedAt = null,
+    Object? createdAt = freezed,
+    Object? updatedAt = freezed,
+    Object? suspended = freezed,
+    Object? isOnline = freezed,
+    Object? wifiSignal = freezed,
+    Object? ohtWaterLevel = freezed,
+    Object? ugtWaterLevel = freezed,
+    Object? ohtEnabled = freezed,
+    Object? ohtMode = freezed,
+    Object? ohtState = freezed,
+    Object? ugtEnabled = freezed,
+    Object? oht = freezed,
+    Object? ugt = freezed,
+    Object? subscription = freezed,
   }) {
     return _then(_$DeviceImpl(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      claimCode: null == claimCode
+      nickname: freezed == nickname
+          ? _value.nickname
+          : nickname // ignore: cast_nullable_to_non_nullable
+              as String?,
+      claimCode: freezed == claimCode
           ? _value.claimCode
           : claimCode // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       macAddress: freezed == macAddress
           ? _value.macAddress
           : macAddress // ignore: cast_nullable_to_non_nullable
@@ -202,45 +307,109 @@ class __$$DeviceImplCopyWithImpl<$Res>
           ? _value.isLabelPrinted
           : isLabelPrinted // ignore: cast_nullable_to_non_nullable
               as bool,
-      ownerId: null == ownerId
+      ownerId: freezed == ownerId
           ? _value.ownerId
           : ownerId // ignore: cast_nullable_to_non_nullable
-              as String,
-      status: null == status
+              as String?,
+      status: freezed == status
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       lastSeenAt: freezed == lastSeenAt
           ? _value.lastSeenAt
           : lastSeenAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      createdAt: null == createdAt
+              as String?,
+      createdAt: freezed == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      updatedAt: null == updatedAt
+              as String?,
+      updatedAt: freezed == updatedAt
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
+              as String?,
+      suspended: freezed == suspended
+          ? _value.suspended
+          : suspended // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      isOnline: freezed == isOnline
+          ? _value.isOnline
+          : isOnline // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      wifiSignal: freezed == wifiSignal
+          ? _value.wifiSignal
+          : wifiSignal // ignore: cast_nullable_to_non_nullable
+              as int?,
+      ohtWaterLevel: freezed == ohtWaterLevel
+          ? _value.ohtWaterLevel
+          : ohtWaterLevel // ignore: cast_nullable_to_non_nullable
+              as double?,
+      ugtWaterLevel: freezed == ugtWaterLevel
+          ? _value.ugtWaterLevel
+          : ugtWaterLevel // ignore: cast_nullable_to_non_nullable
+              as double?,
+      ohtEnabled: freezed == ohtEnabled
+          ? _value.ohtEnabled
+          : ohtEnabled // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      ohtMode: freezed == ohtMode
+          ? _value.ohtMode
+          : ohtMode // ignore: cast_nullable_to_non_nullable
+              as String?,
+      ohtState: freezed == ohtState
+          ? _value.ohtState
+          : ohtState // ignore: cast_nullable_to_non_nullable
+              as String?,
+      ugtEnabled: freezed == ugtEnabled
+          ? _value.ugtEnabled
+          : ugtEnabled // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      oht: freezed == oht
+          ? _value._oht
+          : oht // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      ugt: freezed == ugt
+          ? _value._ugt
+          : ugt // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      subscription: freezed == subscription
+          ? _value._subscription
+          : subscription // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
     ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$DeviceImpl implements _Device {
+class _$DeviceImpl extends _Device {
   const _$DeviceImpl(
       {required this.id,
-      required this.name,
-      required this.claimCode,
+      this.nickname,
+      this.claimCode,
       this.macAddress,
       this.tankTypeId,
       this.isLabelPrinted = false,
-      required this.ownerId,
-      required this.status,
+      this.ownerId,
+      this.status,
       this.lastSeenAt,
-      required this.createdAt,
-      required this.updatedAt});
+      this.createdAt,
+      this.updatedAt,
+      this.suspended,
+      this.isOnline,
+      this.wifiSignal,
+      this.ohtWaterLevel,
+      this.ugtWaterLevel,
+      this.ohtEnabled,
+      this.ohtMode,
+      this.ohtState,
+      this.ugtEnabled,
+      final Map<String, dynamic>? oht,
+      final Map<String, dynamic>? ugt,
+      final Map<String, dynamic>? subscription})
+      : _oht = oht,
+        _ugt = ugt,
+        _subscription = subscription,
+        super._();
 
   factory _$DeviceImpl.fromJson(Map<String, dynamic> json) =>
       _$$DeviceImplFromJson(json);
@@ -248,33 +417,77 @@ class _$DeviceImpl implements _Device {
   @override
   final String id;
   @override
-  final String name;
+  final String? nickname;
   @override
-  final String claimCode;
+  final String? claimCode;
   @override
   final String? macAddress;
-// API-verified fields from Swagger (were missing in v3.0)
   @override
   final String? tankTypeId;
-// UUID linking to predefined tank type
   @override
   @JsonKey()
   final bool isLabelPrinted;
   @override
-  final String ownerId;
+  final String? ownerId;
   @override
-  final String status;
-// 'ONLINE' | 'OFFLINE' | 'SUSPENDED'
+  final String? status;
   @override
-  final DateTime? lastSeenAt;
+  final String? lastSeenAt;
   @override
-  final DateTime createdAt;
+  final String? createdAt;
   @override
-  final DateTime updatedAt;
+  final String? updatedAt;
+  @override
+  final bool? suspended;
+  @override
+  final bool? isOnline;
+  @override
+  final int? wifiSignal;
+  @override
+  final double? ohtWaterLevel;
+  @override
+  final double? ugtWaterLevel;
+  @override
+  final bool? ohtEnabled;
+  @override
+  final String? ohtMode;
+  @override
+  final String? ohtState;
+  @override
+  final bool? ugtEnabled;
+  final Map<String, dynamic>? _oht;
+  @override
+  Map<String, dynamic>? get oht {
+    final value = _oht;
+    if (value == null) return null;
+    if (_oht is EqualUnmodifiableMapView) return _oht;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
+  final Map<String, dynamic>? _ugt;
+  @override
+  Map<String, dynamic>? get ugt {
+    final value = _ugt;
+    if (value == null) return null;
+    if (_ugt is EqualUnmodifiableMapView) return _ugt;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
+  final Map<String, dynamic>? _subscription;
+  @override
+  Map<String, dynamic>? get subscription {
+    final value = _subscription;
+    if (value == null) return null;
+    if (_subscription is EqualUnmodifiableMapView) return _subscription;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
 
   @override
   String toString() {
-    return 'Device(id: $id, name: $name, claimCode: $claimCode, macAddress: $macAddress, tankTypeId: $tankTypeId, isLabelPrinted: $isLabelPrinted, ownerId: $ownerId, status: $status, lastSeenAt: $lastSeenAt, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Device(id: $id, nickname: $nickname, claimCode: $claimCode, macAddress: $macAddress, tankTypeId: $tankTypeId, isLabelPrinted: $isLabelPrinted, ownerId: $ownerId, status: $status, lastSeenAt: $lastSeenAt, createdAt: $createdAt, updatedAt: $updatedAt, suspended: $suspended, isOnline: $isOnline, wifiSignal: $wifiSignal, ohtWaterLevel: $ohtWaterLevel, ugtWaterLevel: $ugtWaterLevel, ohtEnabled: $ohtEnabled, ohtMode: $ohtMode, ohtState: $ohtState, ugtEnabled: $ugtEnabled, oht: $oht, ugt: $ugt, subscription: $subscription)';
   }
 
   @override
@@ -283,7 +496,8 @@ class _$DeviceImpl implements _Device {
         (other.runtimeType == runtimeType &&
             other is _$DeviceImpl &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.name, name) || other.name == name) &&
+            (identical(other.nickname, nickname) ||
+                other.nickname == nickname) &&
             (identical(other.claimCode, claimCode) ||
                 other.claimCode == claimCode) &&
             (identical(other.macAddress, macAddress) ||
@@ -299,24 +513,58 @@ class _$DeviceImpl implements _Device {
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
-                other.updatedAt == updatedAt));
+                other.updatedAt == updatedAt) &&
+            (identical(other.suspended, suspended) ||
+                other.suspended == suspended) &&
+            (identical(other.isOnline, isOnline) ||
+                other.isOnline == isOnline) &&
+            (identical(other.wifiSignal, wifiSignal) ||
+                other.wifiSignal == wifiSignal) &&
+            (identical(other.ohtWaterLevel, ohtWaterLevel) ||
+                other.ohtWaterLevel == ohtWaterLevel) &&
+            (identical(other.ugtWaterLevel, ugtWaterLevel) ||
+                other.ugtWaterLevel == ugtWaterLevel) &&
+            (identical(other.ohtEnabled, ohtEnabled) ||
+                other.ohtEnabled == ohtEnabled) &&
+            (identical(other.ohtMode, ohtMode) || other.ohtMode == ohtMode) &&
+            (identical(other.ohtState, ohtState) ||
+                other.ohtState == ohtState) &&
+            (identical(other.ugtEnabled, ugtEnabled) ||
+                other.ugtEnabled == ugtEnabled) &&
+            const DeepCollectionEquality().equals(other._oht, _oht) &&
+            const DeepCollectionEquality().equals(other._ugt, _ugt) &&
+            const DeepCollectionEquality()
+                .equals(other._subscription, _subscription));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      name,
-      claimCode,
-      macAddress,
-      tankTypeId,
-      isLabelPrinted,
-      ownerId,
-      status,
-      lastSeenAt,
-      createdAt,
-      updatedAt);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        id,
+        nickname,
+        claimCode,
+        macAddress,
+        tankTypeId,
+        isLabelPrinted,
+        ownerId,
+        status,
+        lastSeenAt,
+        createdAt,
+        updatedAt,
+        suspended,
+        isOnline,
+        wifiSignal,
+        ohtWaterLevel,
+        ugtWaterLevel,
+        ohtEnabled,
+        ohtMode,
+        ohtState,
+        ugtEnabled,
+        const DeepCollectionEquality().hash(_oht),
+        const DeepCollectionEquality().hash(_ugt),
+        const DeepCollectionEquality().hash(_subscription)
+      ]);
 
   @JsonKey(ignore: true)
   @override
@@ -332,44 +580,81 @@ class _$DeviceImpl implements _Device {
   }
 }
 
-abstract class _Device implements Device {
+abstract class _Device extends Device {
   const factory _Device(
       {required final String id,
-      required final String name,
-      required final String claimCode,
+      final String? nickname,
+      final String? claimCode,
       final String? macAddress,
       final String? tankTypeId,
       final bool isLabelPrinted,
-      required final String ownerId,
-      required final String status,
-      final DateTime? lastSeenAt,
-      required final DateTime createdAt,
-      required final DateTime updatedAt}) = _$DeviceImpl;
+      final String? ownerId,
+      final String? status,
+      final String? lastSeenAt,
+      final String? createdAt,
+      final String? updatedAt,
+      final bool? suspended,
+      final bool? isOnline,
+      final int? wifiSignal,
+      final double? ohtWaterLevel,
+      final double? ugtWaterLevel,
+      final bool? ohtEnabled,
+      final String? ohtMode,
+      final String? ohtState,
+      final bool? ugtEnabled,
+      final Map<String, dynamic>? oht,
+      final Map<String, dynamic>? ugt,
+      final Map<String, dynamic>? subscription}) = _$DeviceImpl;
+  const _Device._() : super._();
 
   factory _Device.fromJson(Map<String, dynamic> json) = _$DeviceImpl.fromJson;
 
   @override
   String get id;
   @override
-  String get name;
+  String? get nickname;
   @override
-  String get claimCode;
+  String? get claimCode;
   @override
   String? get macAddress;
-  @override // API-verified fields from Swagger (were missing in v3.0)
+  @override
   String? get tankTypeId;
-  @override // UUID linking to predefined tank type
+  @override
   bool get isLabelPrinted;
   @override
-  String get ownerId;
+  String? get ownerId;
   @override
-  String get status;
-  @override // 'ONLINE' | 'OFFLINE' | 'SUSPENDED'
-  DateTime? get lastSeenAt;
+  String? get status;
   @override
-  DateTime get createdAt;
+  String? get lastSeenAt;
   @override
-  DateTime get updatedAt;
+  String? get createdAt;
+  @override
+  String? get updatedAt;
+  @override
+  bool? get suspended;
+  @override
+  bool? get isOnline;
+  @override
+  int? get wifiSignal;
+  @override
+  double? get ohtWaterLevel;
+  @override
+  double? get ugtWaterLevel;
+  @override
+  bool? get ohtEnabled;
+  @override
+  String? get ohtMode;
+  @override
+  String? get ohtState;
+  @override
+  bool? get ugtEnabled;
+  @override
+  Map<String, dynamic>? get oht;
+  @override
+  Map<String, dynamic>? get ugt;
+  @override
+  Map<String, dynamic>? get subscription;
   @override
   @JsonKey(ignore: true)
   _$$DeviceImplCopyWith<_$DeviceImpl> get copyWith =>
@@ -521,6 +806,8 @@ ClaimDeviceRequest _$ClaimDeviceRequestFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$ClaimDeviceRequest {
   String get claimCode => throw _privateConstructorUsedError;
+  String get macAddress => throw _privateConstructorUsedError;
+  String get signature => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -534,7 +821,7 @@ abstract class $ClaimDeviceRequestCopyWith<$Res> {
           ClaimDeviceRequest value, $Res Function(ClaimDeviceRequest) then) =
       _$ClaimDeviceRequestCopyWithImpl<$Res, ClaimDeviceRequest>;
   @useResult
-  $Res call({String claimCode});
+  $Res call({String claimCode, String macAddress, String signature});
 }
 
 /// @nodoc
@@ -551,11 +838,21 @@ class _$ClaimDeviceRequestCopyWithImpl<$Res, $Val extends ClaimDeviceRequest>
   @override
   $Res call({
     Object? claimCode = null,
+    Object? macAddress = null,
+    Object? signature = null,
   }) {
     return _then(_value.copyWith(
       claimCode: null == claimCode
           ? _value.claimCode
           : claimCode // ignore: cast_nullable_to_non_nullable
+              as String,
+      macAddress: null == macAddress
+          ? _value.macAddress
+          : macAddress // ignore: cast_nullable_to_non_nullable
+              as String,
+      signature: null == signature
+          ? _value.signature
+          : signature // ignore: cast_nullable_to_non_nullable
               as String,
     ) as $Val);
   }
@@ -569,7 +866,7 @@ abstract class _$$ClaimDeviceRequestImplCopyWith<$Res>
       __$$ClaimDeviceRequestImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String claimCode});
+  $Res call({String claimCode, String macAddress, String signature});
 }
 
 /// @nodoc
@@ -584,11 +881,21 @@ class __$$ClaimDeviceRequestImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? claimCode = null,
+    Object? macAddress = null,
+    Object? signature = null,
   }) {
     return _then(_$ClaimDeviceRequestImpl(
       claimCode: null == claimCode
           ? _value.claimCode
           : claimCode // ignore: cast_nullable_to_non_nullable
+              as String,
+      macAddress: null == macAddress
+          ? _value.macAddress
+          : macAddress // ignore: cast_nullable_to_non_nullable
+              as String,
+      signature: null == signature
+          ? _value.signature
+          : signature // ignore: cast_nullable_to_non_nullable
               as String,
     ));
   }
@@ -597,17 +904,24 @@ class __$$ClaimDeviceRequestImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$ClaimDeviceRequestImpl implements _ClaimDeviceRequest {
-  const _$ClaimDeviceRequestImpl({required this.claimCode});
+  const _$ClaimDeviceRequestImpl(
+      {required this.claimCode,
+      required this.macAddress,
+      required this.signature});
 
   factory _$ClaimDeviceRequestImpl.fromJson(Map<String, dynamic> json) =>
       _$$ClaimDeviceRequestImplFromJson(json);
 
   @override
   final String claimCode;
+  @override
+  final String macAddress;
+  @override
+  final String signature;
 
   @override
   String toString() {
-    return 'ClaimDeviceRequest(claimCode: $claimCode)';
+    return 'ClaimDeviceRequest(claimCode: $claimCode, macAddress: $macAddress, signature: $signature)';
   }
 
   @override
@@ -616,12 +930,17 @@ class _$ClaimDeviceRequestImpl implements _ClaimDeviceRequest {
         (other.runtimeType == runtimeType &&
             other is _$ClaimDeviceRequestImpl &&
             (identical(other.claimCode, claimCode) ||
-                other.claimCode == claimCode));
+                other.claimCode == claimCode) &&
+            (identical(other.macAddress, macAddress) ||
+                other.macAddress == macAddress) &&
+            (identical(other.signature, signature) ||
+                other.signature == signature));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, claimCode);
+  int get hashCode =>
+      Object.hash(runtimeType, claimCode, macAddress, signature);
 
   @JsonKey(ignore: true)
   @override
@@ -639,14 +958,20 @@ class _$ClaimDeviceRequestImpl implements _ClaimDeviceRequest {
 }
 
 abstract class _ClaimDeviceRequest implements ClaimDeviceRequest {
-  const factory _ClaimDeviceRequest({required final String claimCode}) =
-      _$ClaimDeviceRequestImpl;
+  const factory _ClaimDeviceRequest(
+      {required final String claimCode,
+      required final String macAddress,
+      required final String signature}) = _$ClaimDeviceRequestImpl;
 
   factory _ClaimDeviceRequest.fromJson(Map<String, dynamic> json) =
       _$ClaimDeviceRequestImpl.fromJson;
 
   @override
   String get claimCode;
+  @override
+  String get macAddress;
+  @override
+  String get signature;
   @override
   @JsonKey(ignore: true)
   _$$ClaimDeviceRequestImplCopyWith<_$ClaimDeviceRequestImpl> get copyWith =>

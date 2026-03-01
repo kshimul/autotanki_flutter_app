@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/connection_state_notifier.dart';
 import '../../../../core/theme/design_tokens.dart';
+import '../../application/dashboard_providers.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CONNECTION BADGE — top-right status indicator on dashboard
@@ -13,11 +14,30 @@ class ConnectionBadge extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(connectionStateProvider);
+    final mqttState = ref.watch(connectionStateProvider);
+    final device = ref.watch(deviceSelectorProvider);
+
+    DeviceConnectionState effectiveState = mqttState;
+
+    if (mqttState == DeviceConnectionState.online && device != null) {
+      // Phone is connected to MQTT. Is the hardware device online?
+      final telemetry = ref.watch(telemetryStreamProvider(device)).valueOrNull;
+      
+      final bool isDeviceOnline;
+      if (telemetry != null) {
+        isDeviceOnline = DateTime.now().difference(telemetry.timestamp).inMinutes < 3;
+      } else {
+        isDeviceOnline = device.isOnline ?? false;
+      }
+
+      if (!isDeviceOnline) {
+        effectiveState = DeviceConnectionState.hardwareDisconnected;
+      }
+    }
 
     return AnimatedSwitcher(
       duration: AppDurations.fast,
-      child: _badge(state),
+      child: _badge(effectiveState),
     );
   }
 

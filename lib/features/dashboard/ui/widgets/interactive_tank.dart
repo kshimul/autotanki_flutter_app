@@ -68,28 +68,10 @@ class _InteractiveTankState extends State<InteractiveTank> {
         SizedBox(
           width: 130,
           height: 160,
-          child: _riveLoaded || !_riveLoaded
-              ? Stack(
-                  children: [
-                    // Try Rive first
-                    RiveAnimation.asset(
-                      'assets/rive/tank.riv',
-                      stateMachines: const ['TankMachine'],
-                      onInit: _onRiveInit,
-                      // If Rive fails (asset missing), CustomPaint shows instead
-                    ),
-                    // Fallback: always show procedural tank if Rive not loaded
-                    if (!_riveLoaded)
-                      _FallbackTank(
-                        level: widget.level,
-                        isMotorOn: widget.isMotorOn,
-                      ),
-                  ],
-                )
-              : _FallbackTank(
-                  level: widget.level,
-                  isMotorOn: widget.isMotorOn,
-                ),
+          child: _FallbackTank(
+            level: widget.level,
+            isMotorOn: widget.isMotorOn,
+          ),
         ),
 
         const SizedBox(height: Spacing.sm),
@@ -114,25 +96,28 @@ class _InteractiveTankState extends State<InteractiveTank> {
         ),
 
         // ── Motor indicator ───────────────────────────────────────────────
-        if (widget.isMotorOn)
-          Container(
-            margin: const EdgeInsets.only(top: Spacing.xs),
-            padding: const EdgeInsets.symmetric(
-                horizontal: Spacing.sm, vertical: 2),
-            decoration: BoxDecoration(
-              color: AppColors.success.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(AppRadius.full),
-              border: Border.all(
-                  color: AppColors.success.withOpacity(0.4)),
-            ),
-            child: const Text(
-              '⚡ Running',
-              style: TextStyle(
-                  color: AppColors.success,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700),
-            ),
+        Container(
+          margin: const EdgeInsets.only(top: Spacing.xs),
+          padding: const EdgeInsets.symmetric(
+              horizontal: Spacing.sm, vertical: 2),
+          decoration: BoxDecoration(
+            color: widget.isMotorOn 
+                ? AppColors.success.withOpacity(0.15)
+                : AppColors.surfaceHighlight.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(AppRadius.full),
+            border: Border.all(
+                color: widget.isMotorOn 
+                    ? AppColors.success.withOpacity(0.4)
+                    : AppColors.surfaceHighlight),
           ),
+          child: Text(
+            widget.isMotorOn ? '⚡ Running' : 'Motor Off',
+            style: TextStyle(
+                color: widget.isMotorOn ? AppColors.success : AppColors.textTertiary,
+                fontSize: 10,
+                fontWeight: FontWeight.w700),
+          ),
+        ),
       ],
     );
   }

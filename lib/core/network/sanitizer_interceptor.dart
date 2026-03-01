@@ -24,8 +24,10 @@ class SanitizerInterceptor extends Interceptor {
       'status: ${err.response?.statusCode}',
     ];
 
-    // 3. Only log non-network errors (network errors are expected offline)
-    if (err.type != DioExceptionType.connectionError &&
+    // 3. Only log non-network errors and non-routine auth errors
+    final isUnauthorized = err.response?.statusCode == 401;
+    if (!isUnauthorized &&
+        err.type != DioExceptionType.connectionError &&
         err.type != DioExceptionType.receiveTimeout) {
       FirebaseCrashlytics.instance.recordError(
         'API Error ${err.response?.statusCode}',

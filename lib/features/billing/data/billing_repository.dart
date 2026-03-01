@@ -32,10 +32,20 @@ class BillingRepository {
 
   Future<Subscription?> getActiveSubscription(String deviceId) async {
     try {
-      final resp = await _dio.get(ApiConstants.deviceSubscription(deviceId));
-      return Subscription.fromJson(resp.data as Map<String, dynamic>);
+      final resp = await _dio.get(ApiConstants.subscriptions);
+      final rawData = resp.data as Map<String, dynamic>;
+      final data = rawData['data'] as Map<String, dynamic>? ?? rawData;
+      final subscriptions = (data['subscriptions'] as List?) ?? [];
+      
+      for (final s in subscriptions) {
+         final sub = Subscription.fromJson(s as Map<String, dynamic>);
+         if (sub.deviceId == deviceId && sub.status == 'ACTIVE') {
+            return sub;
+         }
+      }
+      return null;
     } on DioException catch (e) {
-      if (e.response?.statusCode == 404) return null; // No subscription yet
+      if (e.response?.statusCode == 404) return null;
       rethrow;
     }
   }

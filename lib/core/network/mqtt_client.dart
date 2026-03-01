@@ -90,19 +90,19 @@ class AppMqttClient {
   }
 
   // ── Device topic helpers ──────────────────────────────────────────────────
-  static List<String> _deviceTopics(String deviceId) => [
-        'devices/$deviceId/telemetry',
-        'devices/$deviceId/status',
+  static List<String> _deviceTopics(String macAddress) => [
+        'v1/devices/$macAddress/telemetry',
+        'v1/devices/$macAddress/status',
       ];
 
-  void subscribeDeviceTopics(String deviceId) {
-    for (final t in _deviceTopics(deviceId)) {
+  void subscribeDeviceTopics(String macAddress) {
+    for (final t in _deviceTopics(macAddress)) {
       subscribe(t);
     }
   }
 
-  void unsubscribeDeviceTopics(String deviceId) {
-    for (final t in _deviceTopics(deviceId)) {
+  void unsubscribeDeviceTopics(String macAddress) {
+    for (final t in _deviceTopics(macAddress)) {
       unsubscribe(t);
     }
   }

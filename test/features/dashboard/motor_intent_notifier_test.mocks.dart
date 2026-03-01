@@ -52,6 +52,26 @@ class MockDashboardRepository extends _i1.Mock
       ) as _i3.Future<void>);
 
   @override
+  _i3.Future<void> setMode({
+    required String? deviceId,
+    required String? motor,
+    required String? mode,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #setMode,
+          [],
+          {
+            #deviceId: deviceId,
+            #motor: motor,
+            #mode: mode,
+          },
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+
+  @override
   _i3.Future<Map<String, dynamic>> getSubscriptionStatus(String? deviceId) =>
       (super.noSuchMethod(
         Invocation.method(

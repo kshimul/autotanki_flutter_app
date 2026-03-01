@@ -362,6 +362,7 @@ class _CreateScheduleSheetState extends ConsumerState<_CreateScheduleSheet> {
     setState(() => _saving = true);
     try {
       await ref.read(scheduleRepositoryProvider).createSchedule(
+            widget.deviceId,
             CreateScheduleRequest(
               deviceId: widget.deviceId,
               name: _nameCtrl.text.trim(),
